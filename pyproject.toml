@@ -5,15 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "piano_dataset"
 version = "0.1.0"
-description = "Functional definitions of tasks defined for the PIANO dataset"
+description = "Functional definitions of tasks used in the PIANO dataset"
 dependencies = [
-    # Add your main dependencies here
+    "pandas",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    # Add other dev dependencies here
 ]
 
 [tool.setuptools.packages.find]
