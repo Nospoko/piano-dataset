@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "piano_dataset"
+version = "0.1.0"
+description = "Functional definitions of tasks defined for the PIANO dataset"
+dependencies = [
+    # Add your main dependencies here
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    # Add other dev dependencies here
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
