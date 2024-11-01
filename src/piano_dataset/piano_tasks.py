@@ -122,3 +122,68 @@ class BelowHighQuartilePrediction(PianoTask):
             target_token=self.target_token,
         )
         return target_split
+
+
+class BelowMedianPrediction(PianoTask):
+    name = "below_median_prediction"
+    type = PromptTaskType.COMBINE
+    source_token = "<HIGH_FROM_MEDIAN>"
+    target_token = "<LOW_FROM_MEDIAN>"
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        median = notes_df.pitch.median()
+        source_df = notes_df[notes_df.pitch >= median].reset_index(drop=True)
+        target_df = notes_df[notes_df.pitch < median].reset_index(drop=True)
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            source_token=self.source_token,
+            target_token=self.target_token,
+        )
+        return target_split
+
+
+class MiddleQuartilesPrediction(PianoTask):
+    name = "middle_quartile_prediction"
+    type = PromptTaskType.COMBINE
+    source_token = "<EXTREME_QUARTILES>"
+    target_token = "<MIDDLE_QUARTILES>"
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        q1 = notes_df.pitch.quantile(0.25)
+        q3 = notes_df.pitch.quantile(0.75)
+
+        ids = (notes_df.pitch < q1) | (notes_df.pitch >= q3)
+        source_df = notes_df[ids].reset_index(drop=True)
+        target_df = notes_df[~ids].reset_index(drop=True)
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            source_token=self.source_token,
+            target_token=self.target_token,
+        )
+        return target_split
+
+
+class ExtremeQuartilesPrediction(PianoTask):
+    name = "extreme_quartile_prediction"
+    type = PromptTaskType.COMBINE
+    source_token = "<MIDDLE_QUARTILES>"
+    target_token = "<EXTREME_QUARTILES>"
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        q1 = notes_df.pitch.quantile(0.25)
+        q3 = notes_df.pitch.quantile(0.75)
+        ids = (notes_df.pitch < q1) | (notes_df.pitch >= q3)
+        target_df = notes_df[ids]
+        source_df = notes_df[~ids]
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            source_token=self.source_token,
+            target_token=self.target_token,
+        )
+        return target_split
