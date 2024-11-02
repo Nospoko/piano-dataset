@@ -1,5 +1,5 @@
 from enum import Enum
-from dataclasses import dataclass
+from typing import NamedTuple
 from abc import ABC, abstractmethod
 
 import pandas as pd
@@ -19,8 +19,7 @@ class PromptTaskType(Enum):
     REPLACE = "replace"
 
 
-@dataclass
-class TargetPromptSplit:
+class TargetPromptSplit(NamedTuple):
     source_token: str
     target_token: str
     source_df: pd.DataFrame
