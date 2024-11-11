@@ -187,3 +187,23 @@ class ExtremeQuartilesPrediction(PianoTask):
             target_token=self.target_token,
         )
         return target_split
+
+
+class FastNotesPrediction(PianoTask):
+    name = "fast_notes_prediction"
+    type = PromptTaskType.COMBINE
+    source_token = "<SLOW_NOTES>"
+    target_token = "<FAST_NOTES>"
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        ids = notes_df.duration < 0.2
+        target_df = notes_df[ids]
+        source_df = notes_df[~ids]
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            source_token=self.source_token,
+            target_token=self.target_token,
+        )
+        return target_split
