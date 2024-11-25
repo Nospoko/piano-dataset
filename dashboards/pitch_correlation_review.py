@@ -5,7 +5,7 @@ import streamlit_pianoroll
 import plotly.graph_objects as go
 
 from dashboards.utils import dataset_configuration
-from src.metrics.pitch_distribution import calculate_pitch_correlation
+from src.piano_metrics.pitch_distribution import calculate_pitch_correlation
 
 
 def plot_pitch_distribution(

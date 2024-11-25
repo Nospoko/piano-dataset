@@ -8,7 +8,7 @@ import streamlit_pianoroll
 import plotly.graph_objects as go
 from datasets import Dataset, load_dataset
 
-from src.metrics.key_distribution import calculate_key_correlation
+from src.piano_metrics.key_distribution import calculate_key_correlation
 
 
 def select_part_dataset(

@@ -6,7 +6,7 @@ import streamlit_pianoroll
 import plotly.graph_objects as go
 from utils import dataset_configuration
 
-from src.metrics.f1_score import calculate_f1
+from piano_metrics.f1_piano import calculate_f1
 
 
 def plot_f1_time_series(metrics: dict, title: str = "") -> go.Figure:
