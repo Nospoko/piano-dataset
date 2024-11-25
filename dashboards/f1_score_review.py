@@ -5,6 +5,7 @@ import streamlit as st
 import streamlit_pianoroll
 import plotly.graph_objects as go
 from utils import dataset_configuration
+from streamlit.errors import DuplicateWidgetID
 
 from piano_metrics.f1_piano import calculate_f1
 
@@ -76,7 +77,10 @@ def main():
         with col1:
             streamlit_pianoroll.from_fortepyan(piece=piece1)
         with col2:
-            streamlit_pianoroll.from_fortepyan(piece=piece2, secondary_piece=piece1)
+            try:
+                streamlit_pianoroll.from_fortepyan(piece=piece2, secondary_piece=piece1)    
+            except DuplicateWidgetID:
+                st.write("Duplicate pianoroll")
 
         # Analyze pieces
         with st.spinner("Calculating F1 scores..."):
