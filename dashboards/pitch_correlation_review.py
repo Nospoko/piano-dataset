@@ -3,10 +3,9 @@ import fortepyan as ff
 import streamlit as st
 import streamlit_pianoroll
 import plotly.graph_objects as go
-from streamlit.errors import DuplicateWidgetID
 
 from dashboards.utils import dataset_configuration
-from src.piano_metrics.pitch_distribution import calculate_pitch_correlation
+from piano_metrics.pitch_distribution import calculate_pitch_correlation
 
 
 def plot_pitch_distribution(
@@ -72,10 +71,7 @@ def main():
         with col1:
             streamlit_pianoroll.from_fortepyan(piece=piece1)
         with col2:
-            try:
-                streamlit_pianoroll.from_fortepyan(piece=piece2)
-            except DuplicateWidgetID:
-                st.write("Duplicate pianoroll")
+            streamlit_pianoroll.from_fortepyan(piece=piece2, key="proll-right")
 
         # Analyze pieces
         with st.spinner("Analyzing pitch distributions..."):

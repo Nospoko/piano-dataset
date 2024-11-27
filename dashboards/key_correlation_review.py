@@ -7,9 +7,8 @@ import streamlit as st
 import streamlit_pianoroll
 import plotly.graph_objects as go
 from datasets import Dataset, load_dataset
-from streamlit.errors import DuplicateWidgetID
 
-from src.piano_metrics.key_distribution import calculate_key_correlation
+from piano_metrics.key_distribution import calculate_key_correlation
 
 
 def select_part_dataset(
@@ -200,13 +199,10 @@ def main():
         col1, col2 = st.columns(2)
 
         with col1:
-            streamlit_pianoroll.from_fortepyan(piece=piece1)
+            streamlit_pianoroll.from_fortepyan(piece=piece1, key="left")
 
         with col2:
-            try:
-                streamlit_pianoroll.from_fortepyan(piece=piece2)
-            except DuplicateWidgetID:
-                st.write("Duplicate pianoroll")
+            streamlit_pianoroll.from_fortepyan(piece=piece2, key="right")
 
         # Analyze pieces
         with st.spinner("Analyzing key distributions..."):
