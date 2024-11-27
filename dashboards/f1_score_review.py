@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import fortepyan as ff
@@ -74,12 +76,13 @@ def main():
         st.header("Piece Visualizations")
         col1, col2 = st.columns(2)
         with col1:
-            streamlit_pianoroll.from_fortepyan(piece=piece1, key="left-proll")
+            streamlit_pianoroll.from_fortepyan(piece=piece1)
         with col2:
+            right_key = "right-" + json.dumps(piece2.source) + json.dumps(piece1.source)
             streamlit_pianoroll.from_fortepyan(
                 piece=piece2,
                 secondary_piece=piece1,
-                key="right-proll",
+                key=right_key,
             )
 
         # Analyze pieces

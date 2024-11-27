@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 import yaml
@@ -58,7 +59,7 @@ def dataset_configuration(key: str = "0"):
     with col1:
         dataset_path = st.text_input(
             "Dataset Path",
-            value="roszcz/maestro-sustain-v2",
+            value="epr-labs/maestro-sustain-v2",
             help="Enter the path to the dataset",
             key=f"d_path_{key}",
         )
@@ -199,10 +200,11 @@ def main():
         col1, col2 = st.columns(2)
 
         with col1:
-            streamlit_pianoroll.from_fortepyan(piece=piece1, key="left")
+            streamlit_pianoroll.from_fortepyan(piece=piece1)
 
         with col2:
-            streamlit_pianoroll.from_fortepyan(piece=piece2, key="right")
+            right_key = "right-" + json.dumps(piece2.source)
+            streamlit_pianoroll.from_fortepyan(piece=piece2, key=right_key)
 
         # Analyze pieces
         with st.spinner("Analyzing key distributions..."):

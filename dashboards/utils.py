@@ -50,7 +50,7 @@ def dataset_configuration(key: str = "0"):
     with col1:
         dataset_path = st.text_input(
             "Dataset Path",
-            value="roszcz/maestro-sustain-v2",
+            value="epr-labs/maestro-sustain-v2",
             help="Enter the path to the dataset",
             key=f"d_path_{key}",
         )

@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import fortepyan as ff
 import streamlit as st
@@ -71,7 +73,8 @@ def main():
         with col1:
             streamlit_pianoroll.from_fortepyan(piece=piece1)
         with col2:
-            streamlit_pianoroll.from_fortepyan(piece=piece2, key="proll-right")
+            right_key = "right-" + json.dumps(piece2.source)
+            streamlit_pianoroll.from_fortepyan(piece=piece2, key=right_key)
 
         # Analyze pieces
         with st.spinner("Analyzing pitch distributions..."):
