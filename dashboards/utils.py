@@ -45,7 +45,6 @@ def select_part_dataset(
 
 
 def dataset_configuration(key: str = "0"):
-    st.header("Dataset Configuration")
     col1, col2 = st.columns(2)
     with col1:
         dataset_path = st.text_input(
@@ -71,7 +70,6 @@ def dataset_configuration(key: str = "0"):
         key=key,
     )
 
-    st.success(f"Dataset loaded! Total records: {len(dataset)}")
     return dataset
 
 

@@ -1,5 +1,5 @@
-pandas>=2.1.4
-numpy~=1.26.4
-fortepyan~=0.4.2
-streamlit_pianoroll~=0.7.1
+fortepyan==0.4.2
+numpy==1.26.4
+pandas==2.1.4
 plotly==5.24.1
+streamlit_pianoroll==0.7.1

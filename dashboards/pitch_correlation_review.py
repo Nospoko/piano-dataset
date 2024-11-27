@@ -54,15 +54,18 @@ def plot_pitch_correlation_heatmap(
 def main():
     st.title("Pitch Distribution Analysis Dashboard")
 
+    st.markdown("### Piece Selectors")
     col1, col2 = st.columns(2)
     with col1:
         dataset_1 = dataset_configuration(key="0")
+        record_id_1 = st.number_input(label=f"Record number [0-{len(dataset_1)}]", value=0)
     with col2:
         dataset_2 = dataset_configuration(key="1")
+        record_id_2 = st.number_input(label=f"Record number [0-{len(dataset_2)}]", value=0)
 
     if len(dataset_1) > 0 and len(dataset_2) > 0:
-        piece1 = ff.MidiPiece.from_huggingface(dataset_1[0])
-        piece2 = ff.MidiPiece.from_huggingface(dataset_2[0])
+        piece1 = ff.MidiPiece.from_huggingface(dataset_1[record_id_1])
+        piece2 = ff.MidiPiece.from_huggingface(dataset_2[record_id_2])
         # Analysis parameters
         st.header("Analysis Parameters")
         use_weighted = st.checkbox("Use weighted pitch detection", value=True)
