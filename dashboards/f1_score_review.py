@@ -70,8 +70,15 @@ def main():
             step=1,
         )
         use_pitch_class = st.checkbox(
-            "Use pitch class matching",
+            "Match pitch classes (ignore octaves)",
             value=True,
+            help="""
+Controls how pitches are matched between pieces:
+- When enabled: Notes are considered matching if they have the same pitch class
+(e.g., all C notes match regardless of octave)
+- When disabled: Notes must have exactly the same MIDI pitch to match (e.g., C4 only matches C4)
+
+Example: With pitch class matching, C4 matches C3, C5 etc. Without it, C4 only matches C4.""",
         )
 
         # Visualization of pieces

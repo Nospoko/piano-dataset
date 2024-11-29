@@ -185,8 +185,15 @@ def main():
             0.025,
         )
         use_weighted = st.checkbox(
-            "Use weighted key detection",
+            "Weight pitches by duration and velocity",
             value=True,
+            help="""
+Controls how different notes influence key detection:
+- When enabled: Weights key detection based on duration and velocity
+- When disabled: All notes contribute equally to key detection
+
+Example: With weighting enabled, a half note with velocity 100
+will have more influence on determining the key than an eighth note with velocity 50.""",
         )
 
         # Visualization of pieces

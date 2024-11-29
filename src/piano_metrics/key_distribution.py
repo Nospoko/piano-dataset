@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -64,47 +64,67 @@ class SpiralArray:
         self.key_names = self._generate_key_names()
 
     def _generate_pitch_spiral(self) -> Dict[int, SpiralPoint]:
-        """Generate pitch class positions on the spiral"""
+        """Map C->G->D->A->E->B->F#->C#->G#->D#->A#->F"""
         pitch_points = {}
+        fifths_steps = {
+            0: 0,  # C
+            7: 1,  # G
+            2: 2,  # D
+            9: 3,  # A
+            4: 4,  # E
+            11: 5,  # B
+            6: 6,  # F#
+            1: 7,  # C#
+            8: 8,  # G#
+            3: 9,  # D#
+            10: 10,  # A#
+            5: -1,
+        }  # F
+
         for pc in range(12):
-            # Convert pitch class to position on spiral
-            angle = 2 * math.pi * pc / 12
-            x = self.r * math.cos(angle)
-            y = self.r * math.sin(angle)
-            z = self.h * pc / 12
+            k = fifths_steps[pc]
+            theta = k * math.pi / 6
+            x = self.r * math.cos(theta)
+            y = self.r * math.sin(theta)
+            z = k * self.h
             pitch_points[pc] = SpiralPoint(x, y, z)
         return pitch_points
 
-    def _generate_major_keys(self) -> List[SpiralPoint]:
-        """Generate major key representations"""
-        major_keys = []
-        # Major key template: root(4), major third(3), perfect fifth(3)
-        for root in range(12):
-            third = (root + 4) % 12
-            fifth = (root + 7) % 12
+    def _create_major_chord(self, root: int) -> SpiralPoint:
+        third = (root + 4) % 12
+        fifth = (root + 7) % 12
+        chord_point = self.pitch_classes[root] * 0.5 + self.pitch_classes[third] * 0.3 + self.pitch_classes[fifth] * 0.2
+        return chord_point
 
-            # Weighted combination of pitch classes
-            weighted_root = self.pitch_classes[root] * 0.4
-            weighted_third = self.pitch_classes[third] * 0.3
-            weighted_fifth = self.pitch_classes[fifth] * 0.3
-            key_point = weighted_root + weighted_third + weighted_fifth
+    def _generate_major_keys(self) -> List[SpiralPoint]:
+        major_keys = []
+        for root in range(12):
+            I = self._create_major_chord(root)
+            IV = self._create_major_chord((root + 5) % 12)
+            V = self._create_major_chord((root + 7) % 12)
+            key_point = I * 0.6 + IV * 0.2 + V * 0.2  # Stronger weight on tonic
             major_keys.append(key_point)
         return major_keys
 
     def _generate_minor_keys(self) -> List[SpiralPoint]:
-        """Generate minor key representations"""
         minor_keys = []
-        # Minor key template: root(4), minor third(3), perfect fifth(3)
         for root in range(12):
-            third = (root + 3) % 12  # Minor third
-            fifth = (root + 7) % 12
+            # Minor triad (root, minor third, fifth)
+            i_chord = self._create_minor_chord(root)
+            iv_chord = self._create_minor_chord((root + 5) % 12)
+            v_chord = self._create_minor_chord((root + 7) % 12)
+            V_chord = self._create_major_chord((root + 7) % 12)  # Major V
 
-            weighted_root = self.pitch_classes[root] * 0.4
-            weighted_third = self.pitch_classes[third] * 0.3
-            weighted_fifth = self.pitch_classes[fifth] * 0.3
-            key_point = weighted_root + weighted_third + weighted_fifth
+            # Mix minor/major V and combine
+            dominant = v_chord * 0.3 + V_chord * 0.7
+            key_point = i_chord * 0.5 + iv_chord * 0.25 + dominant * 0.25
             minor_keys.append(key_point)
         return minor_keys
+
+    def _create_minor_chord(self, root: int) -> SpiralPoint:
+        third = (root + 3) % 12
+        fifth = (root + 7) % 12
+        return self.pitch_classes[root] * 0.6 + self.pitch_classes[third] * 0.2 + self.pitch_classes[fifth] * 0.2
 
     def _generate_key_names(self) -> Dict[int, str]:
         """Generate mapping of key indices to key names"""
@@ -149,33 +169,113 @@ class SpiralArray:
 
         return center
 
-    def get_key(
-        self,
-        center: SpiralPoint,
-        return_distribution: bool = False,
-    ) -> Union[int, Tuple[int, np.ndarray]]:
-        """
-        Determine key from center of effect.
-        Returns key index (0-23) where 0-11 are major keys and 12-23 are minor keys.
-        If return_distribution=True, also returns probability distribution over all keys.
-        """
-        # Calculate distances to all key representations
+    def get_key(self, center: SpiralPoint, return_distribution: bool = False) -> Union[int, Tuple[int, np.ndarray]]:
         major_distances = [center.distance(k) for k in self.major_keys]
         minor_distances = [center.distance(k) for k in self.minor_keys]
         all_distances = major_distances + minor_distances
 
-        # Convert distances to probabilities using softmax
-        max_dist = max(all_distances)
-        exp_distances = [math.exp(-(d - max_dist)) for d in all_distances]
+        # Enhance the difference in distances for clearer key detection
+        exp_distances = [math.exp(-d * 5) for d in all_distances]
         total_exp = sum(exp_distances)
         probabilities = np.array([d / total_exp for d in exp_distances])
 
-        # Find most likely key
         key_index = np.argmin(all_distances)
-
         if return_distribution:
             return key_index, probabilities
         return key_index
+
+
+def detect_key_from_notes(
+    spiral: SpiralArray,
+    notes_df: pd.DataFrame,
+    segment_start: float = 0.0,
+    segment_duration: Optional[float] = None,
+    use_weighted: bool = True,
+) -> Tuple[str, np.ndarray]:
+    """
+    Detect the key from a segment of notes using the Spiral Array model.
+
+    Parameters:
+    -----------
+    spiral : SpiralArray
+        Initialized SpiralArray instance
+    notes_df : pd.DataFrame
+        DataFrame with columns: pitch, velocity, start, end
+    segment_start : float
+        Start time of the segment
+    segment_duration : Optional[float]
+        Duration of the segment. If None, uses the entire notes_df
+    use_weighted : bool
+        Whether to weight notes by duration and velocity
+
+    Returns:
+    --------
+    key_name : str
+        Name of the detected key
+    key_probabilities : np.ndarray
+        Probability distribution over all possible keys
+    """
+    if len(notes_df) == 0:
+        return "No key detected", np.zeros(24)
+
+    if segment_duration is not None:
+        segment_end = segment_start + segment_duration
+        mask = (notes_df["start"] < segment_end) & (notes_df["end"] > segment_start)
+        segment_df = notes_df[mask].copy()
+    else:
+        segment_df = notes_df
+
+    pitches = segment_df["pitch"].tolist()
+
+    if use_weighted:
+        # Calculate note durations within segment
+        durations = []
+        for _, note in segment_df.iterrows():
+            if segment_duration is not None:
+                duration = min(note["end"], segment_end) - max(note["start"], segment_start)
+            else:
+                duration = note["end"] - note["start"]
+            durations.append(duration)
+        velocities = [v / 127.0 for v in segment_df["velocity"]]
+    else:
+        durations = [1.0] * len(pitches)
+        velocities = [1.0] * len(pitches)
+
+    center = spiral.get_center_of_effect(pitches, durations, velocities)
+    key_index, key_probs = spiral.get_key(center, return_distribution=True)
+
+    return spiral.key_names[key_index], key_probs
+
+
+def analyze_piece(
+    spiral: SpiralArray, notes_df: pd.DataFrame, segment_duration: float = 0.125, use_weighted: bool = True
+) -> Dict:
+    if len(notes_df) == 0:
+        return {"overall_distribution": np.zeros(24), "segment_keys": [], "top_keys": []}
+
+    total_duration = notes_df["end"].max()
+    segments = []
+    segment_keys = []
+    overall_distribution = np.zeros(24)
+
+    current_time = 0
+    while current_time < total_duration:
+        key_name, key_probs = detect_key_from_notes(
+            spiral, notes_df, segment_start=current_time, segment_duration=segment_duration, use_weighted=use_weighted
+        )
+        segments.append(key_probs)
+        segment_keys.append(key_name)
+        overall_distribution += key_probs * segment_duration  # Weight by duration
+        current_time += segment_duration
+
+    # Normalize overall distribution
+    if np.sum(overall_distribution) > 0:
+        overall_distribution = overall_distribution / np.sum(overall_distribution)
+
+    top_key_indices = np.argsort(-overall_distribution)[:3]
+    top_keys = [spiral.key_names[i] for i in top_key_indices]
+
+    return {"overall_distribution": overall_distribution, "segment_keys": segment_keys, "top_keys": top_keys}
 
 
 def calculate_key_correlation(
@@ -206,90 +306,23 @@ def calculate_key_correlation(
     metrics : dict
         Additional metrics including key distributions.
     """
-
-    def get_piece_duration(df: pd.DataFrame) -> float:
-        return max(df["end"].max(), 0)
-
-    def segment_piece(df: pd.DataFrame, duration: float) -> List[pd.DataFrame]:
-        """Split piece into equal duration segments"""
-        segments = []
-        current_time = 0
-
-        while current_time < duration:
-            segment_end = current_time + segment_duration
-            # Get notes that overlap with this segment
-            mask = (df["start"] < segment_end) & (df["end"] > current_time)
-            segments.append(df[mask].copy())
-            current_time = segment_end
-
-        return segments
-
-    def get_key_distribution(
-        segments: List[pd.DataFrame],
-        spiral: SpiralArray,
-    ) -> np.ndarray:
-        """Calculate key distribution using Spiral Array algorithm"""
-        # Initialize distribution for all major/minor keys
-        key_distribution = np.zeros(24)
-
-        for segment_df in segments:
-            if len(segment_df) == 0:
-                continue
-
-            # Prepare pitch data for the segment
-            pitches = segment_df["pitch"].tolist()
-
-            if use_weighted:
-                # Calculate actual durations within segment
-                durations = []
-                for _, row in segment_df.iterrows():
-                    durations.append(min(row["end"], segment_duration) - max(row["start"], 0))
-                velocities = [v / 127.0 for v in segment_df["velocity"]]
-            else:
-                durations = [1.0] * len(pitches)
-                velocities = [1.0] * len(pitches)
-
-            # Get center of effect
-            center = spiral.get_center_of_effect(pitches, durations, velocities)
-
-            # Get key probabilities
-            _, key_probs = spiral.get_key(center, return_distribution=True)
-            key_distribution += key_probs
-
-        # Normalize distribution
-        total = np.sum(key_distribution)
-        if total > 0:
-            key_distribution = key_distribution / total
-
-        return key_distribution
-
-    # Initialize Spiral Array
     spiral = SpiralArray()
 
-    # Get total duration (use longer of the two pieces)
-    total_duration = max(get_piece_duration(target_df), get_piece_duration(generated_df))
-
-    # Segment both pieces
-    target_segments = segment_piece(target_df, total_duration)
-    generated_segments = segment_piece(generated_df, total_duration)
-
-    # Get key distributions using Spiral Array
-    target_dist = get_key_distribution(target_segments, spiral)
-    generated_dist = get_key_distribution(generated_segments, spiral)
+    # Analyze both pieces
+    target_analysis = analyze_piece(spiral, target_df, segment_duration, use_weighted)
+    generated_analysis = analyze_piece(spiral, generated_df, segment_duration, use_weighted)
 
     # Calculate correlation coefficient
-    correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
+    correlation = np.corrcoef(target_analysis["overall_distribution"], generated_analysis["overall_distribution"])[0, 1]
 
-    # Prepare detailed metrics
     metrics = {
-        "target_distribution": target_dist,
-        "generated_distribution": generated_dist,
-        "num_segments": len(target_segments),
+        "target_distribution": target_analysis["overall_distribution"],
+        "generated_distribution": generated_analysis["overall_distribution"],
+        "num_segments": len(target_analysis["segment_keys"]),
         "segment_duration": segment_duration,
         "key_names": spiral.key_names,
-        # Add top 3 keys for each piece
-        "target_top_keys": [spiral.key_names[i] for i in np.argsort(-target_dist)[:3]],
-        "generated_top_keys": [spiral.key_names[i] for i in np.argsort(-generated_dist)[:3]],
+        "target_top_keys": target_analysis["top_keys"],
+        "generated_top_keys": generated_analysis["top_keys"],
     }
 
     return correlation, metrics
