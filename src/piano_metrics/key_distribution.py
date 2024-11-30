@@ -49,7 +49,7 @@ class SpiralArray:
 
     def __init__(self):
         # Parameters for the spiral array
-        self.h = 1.0  # height of one rotation
+        self.h = math.sqrt(2 / 15)  # height of one rotation
         self.r = 1.0  # radius
         self.p = 4.0  # pitch constant (perfect fifth = 7 semitones)
 
@@ -64,7 +64,7 @@ class SpiralArray:
         self.key_names = self._generate_key_names()
 
     def _generate_pitch_spiral(self) -> Dict[int, SpiralPoint]:
-        """Map C->G->D->A->E->B->F#->C#->G#->D#->A#->F"""
+        """Generate two complete spiral arrays (24 points total)"""
         pitch_points = {}
         fifths_steps = {
             0: 0,  # C
@@ -78,53 +78,51 @@ class SpiralArray:
             8: 8,  # G#
             3: 9,  # D#
             10: 10,  # A#
-            5: -1,
-        }  # F
+            5: 11,  # F
+        }
 
+        # First spiral array (0-11)
         for pc in range(12):
             k = fifths_steps[pc]
-            theta = k * math.pi / 6
-            x = self.r * math.cos(theta)
-            y = self.r * math.sin(theta)
+            theta = k * math.pi / 2
+            x = (self.r * 1) * math.cos(theta)
+            y = (self.r * 1) * math.sin(theta)
             z = k * self.h
             pitch_points[pc] = SpiralPoint(x, y, z)
+
         return pitch_points
 
     def _create_major_chord(self, root: int) -> SpiralPoint:
-        third = (root + 4) % 12
-        fifth = (root + 7) % 12
-        chord_point = self.pitch_classes[root] * 0.5 + self.pitch_classes[third] * 0.3 + self.pitch_classes[fifth] * 0.2
+        third = self.pitch_classes[(root + 4) % 12]
+        fifth = self.pitch_classes[(root + 7) % 12]
+        chord_point = self.pitch_classes[root % 12] * 0.6 + third * 0.3 + fifth * 0.1
+        return chord_point
+
+    def _create_minor_chord(self, root: int) -> SpiralPoint:
+        third = self.pitch_classes[(root + 3) % 12]
+        fifth = self.pitch_classes[(root + 7) % 12]
+        chord_point = self.pitch_classes[root % 12] * 0.5 + third * 0.3 + fifth * 0.2
         return chord_point
 
     def _generate_major_keys(self) -> List[SpiralPoint]:
         major_keys = []
         for root in range(12):
-            I = self._create_major_chord(root)
-            IV = self._create_major_chord((root + 5) % 12)
-            V = self._create_major_chord((root + 7) % 12)
-            key_point = I * 0.6 + IV * 0.2 + V * 0.2  # Stronger weight on tonic
-            major_keys.append(key_point)
+            tonic = self._create_major_chord(root)
+            subdominant = self._create_major_chord((root + 5) % 12)
+            dominant = self._create_major_chord((root + 7) % 12)
+            major_keys.append(tonic * 0.6 + subdominant * 0.2 + dominant * 0.2)
         return major_keys
 
     def _generate_minor_keys(self) -> List[SpiralPoint]:
         minor_keys = []
         for root in range(12):
-            # Minor triad (root, minor third, fifth)
-            i_chord = self._create_minor_chord(root)
-            iv_chord = self._create_minor_chord((root + 5) % 12)
-            v_chord = self._create_minor_chord((root + 7) % 12)
-            V_chord = self._create_major_chord((root + 7) % 12)  # Major V
-
-            # Mix minor/major V and combine
-            dominant = v_chord * 0.3 + V_chord * 0.7
-            key_point = i_chord * 0.5 + iv_chord * 0.25 + dominant * 0.25
-            minor_keys.append(key_point)
+            tonic = self._create_minor_chord(root)  # Tonic
+            subdominant = self._create_minor_chord((root + 5) % 12)
+            major_dominant = self._create_major_chord((root + 7) % 12)
+            minor_dominant = self._create_minor_chord((root + 7) % 12)
+            dominant = major_dominant * 0.7 + minor_dominant * 0.3
+            minor_keys.append(tonic * 0.5 + subdominant * 0.25 + dominant * 0.25)
         return minor_keys
-
-    def _create_minor_chord(self, root: int) -> SpiralPoint:
-        third = (root + 3) % 12
-        fifth = (root + 7) % 12
-        return self.pitch_classes[root] * 0.6 + self.pitch_classes[third] * 0.2 + self.pitch_classes[fifth] * 0.2
 
     def _generate_key_names(self) -> Dict[int, str]:
         """Generate mapping of key indices to key names"""
@@ -143,12 +141,13 @@ class SpiralArray:
 
     def get_center_of_effect(
         self,
-        pitches: List[int],
-        durations: List[float],
-        velocities: List[float],
+        pitches: list[int],
+        durations: list[float],
+        velocities: list[float],
     ) -> SpiralPoint:
         """
-        Calculate the center of effect for a set of pitches with durations and velocities.
+        Calculate the center of effect for a set of pitches with durations and velocities,
+        selecting the closest pitch on the spiral height-wise.
         """
         if not pitches:
             return SpiralPoint(0, 0, 0)
@@ -164,12 +163,17 @@ class SpiralArray:
         # Calculate weighted average position
         center = SpiralPoint(0, 0, 0)
         for pitch, weight in zip(pitches, normalized_weights):
+            # Find the closest pitch point height-wise for the given pitch
             pitch_class = pitch % 12
             center = center + (self.pitch_classes[pitch_class] * weight)
 
         return center
 
-    def get_key(self, center: SpiralPoint, return_distribution: bool = False) -> Union[int, Tuple[int, np.ndarray]]:
+    def get_key(
+        self,
+        center: SpiralPoint,
+        return_distribution: bool = False,
+    ) -> Union[int, Tuple[int, np.ndarray]]:
         major_distances = [center.distance(k) for k in self.major_keys]
         minor_distances = [center.distance(k) for k in self.minor_keys]
         all_distances = major_distances + minor_distances
@@ -248,7 +252,10 @@ def detect_key_from_notes(
 
 
 def analyze_piece(
-    spiral: SpiralArray, notes_df: pd.DataFrame, segment_duration: float = 0.125, use_weighted: bool = True
+    spiral: SpiralArray,
+    notes_df: pd.DataFrame,
+    segment_duration: float = 0.125,
+    use_weighted: bool = True,
 ) -> Dict:
     if len(notes_df) == 0:
         return {"overall_distribution": np.zeros(24), "segment_keys": [], "top_keys": []}
@@ -261,7 +268,11 @@ def analyze_piece(
     current_time = 0
     while current_time < total_duration:
         key_name, key_probs = detect_key_from_notes(
-            spiral, notes_df, segment_start=current_time, segment_duration=segment_duration, use_weighted=use_weighted
+            spiral,
+            notes_df,
+            segment_start=current_time,
+            segment_duration=segment_duration,
+            use_weighted=use_weighted,
         )
         segments.append(key_probs)
         segment_keys.append(key_name)

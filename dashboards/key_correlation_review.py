@@ -125,7 +125,7 @@ def plot_key_distribution(
     fig.update_layout(
         title=title,
         xaxis_tickangle=-45,
-        yaxis_title="Probability",
+        yaxis_title="Frequency",
         barmode="group",
         showlegend=True,
     )
