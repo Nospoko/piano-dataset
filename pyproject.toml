@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Functional definitions of tasks used in the PIANO dataset"
 dependencies = [
     "pandas",
+    "numpy",
 ]
 
 [project.optional-dependencies]

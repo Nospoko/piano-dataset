@@ -40,6 +40,12 @@ target_prompt
 # )
 ```
 
+## Development
+
+```sh
+pip install -e .[dev]
+```
+
 ## Code style
 This repository uses pre-commit hooks with forced python formatting ([black](https://github.com/psf/black),
 [flake8](https://flake8.pycqa.org/en/latest/), and [isort](https://pycqa.github.io/isort/)):
