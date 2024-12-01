@@ -207,3 +207,71 @@ class FastNotesPrediction(PianoTask):
             target_token=self.target_token,
         )
         return target_split
+
+
+class TopLinePrediction(PianoTask):
+    name = "top_line_prediction"
+    type = PromptTaskType.COMBINE
+    source_token = "<BELOW_TOP_LINE>"
+    target_token = "<TOP_LINE>"
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        start_time = notes_df.start.min()
+        end_time = notes_df.start.max()
+
+        window_size = 0.2
+        top_line_idxs = []
+        while start_time <= end_time:
+            # Get notes that were ringing during this time interval
+            ids = (notes_df["start"] <= start_time + window_size) & (notes_df["end"] > start_time)
+            if ids.any():
+                idx = notes_df[ids].pitch.idxmax()
+                top_line_idxs.append(idx)
+
+            start_time += window_size
+
+        ids = notes_df.index.isin(top_line_idxs)
+        target_df = notes_df[ids]
+        source_df = notes_df[~ids]
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            source_token=self.source_token,
+            target_token=self.target_token,
+        )
+        return target_split
+
+
+class LowLinePrediction(PianoTask):
+    name = "low_line_prediction"
+    type = PromptTaskType.COMBINE
+    source_token = "<ABOVE_LOW_LINE>"
+    target_token = "<LOW_LINE>"
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        start_time = notes_df.start.min()
+        end_time = notes_df.start.max()
+
+        window_size = 0.2
+        top_line_idxs = []
+        while start_time <= end_time:
+            # Get notes that were ringing during this time interval
+            ids = (notes_df["start"] <= start_time + window_size) & (notes_df["end"] > start_time)
+            if ids.any():
+                idx = notes_df[ids].pitch.idxmin()
+                top_line_idxs.append(idx)
+
+            start_time += window_size
+
+        ids = notes_df.index.isin(top_line_idxs)
+        target_df = notes_df[ids]
+        source_df = notes_df[~ids]
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            source_token=self.source_token,
+            target_token=self.target_token,
+        )
+        return target_split
