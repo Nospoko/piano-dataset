@@ -175,6 +175,9 @@ def test_all_major_keys(spiral):
         "G#": ([68, 72, 75], [63, 67, 70], [61, 65, 68]),  # G#-D#-C#
     }
 
+    failed_keys = []
+    failure_details = []
+
     for root, (I, V, IV) in major_progressions.items():
         notes = []
         notes.extend(create_chord(I, 0.0, 2.0))  # I (longer)
@@ -183,8 +186,30 @@ def test_all_major_keys(spiral):
         notes.extend(create_chord(I, 4.0, 2.0))  # I (longer)
 
         df = pd.DataFrame(notes)
-        key_name, _ = detect_key_from_notes(spiral, df)
-        assert key_name == f"{root} major", f"Failed to detect {root} major key"
+        key_name, probs = detect_key_from_notes(spiral, df)
+
+        if key_name != f"{root} major":
+            failed_keys.append(root)
+            # Get top 3 detected keys for debugging
+            top_3 = sorted(
+                [(spiral.key_names[i], probs[i]) for i in range(24)],
+                key=lambda x: x[1],
+                reverse=True,
+            )[:3]
+            failure_details.append(f"\n{root} major test failed:")
+            failure_details.append(f"Expected: {root} major")
+            failure_details.append(f"Got: {key_name}")
+            failure_details.append(f"Top 3 candidates: {top_3}")
+
+    if failed_keys:
+        failure_message = "\n".join(
+            [
+                f"Failed to detect the following major keys: {', '.join(failed_keys)}",
+                "Detailed failures:",
+                *failure_details,
+            ]
+        )
+        pytest.fail(failure_message)
 
 
 def test_all_minor_keys(spiral):
@@ -204,6 +229,9 @@ def test_all_minor_keys(spiral):
         "A#": ([70, 73, 77], [63, 66, 70], [65, 69, 72]),  # Bbm-Ebm-F
     }
 
+    failed_keys = []
+    failure_details = []
+
     for root, (i, iv, V) in minor_progressions.items():
         notes = []
         notes.extend(create_chord(i, 0.0, 1.0))  # i
@@ -212,29 +240,67 @@ def test_all_minor_keys(spiral):
         notes.extend(create_chord(i, 3.0, 1.0))  # i
 
         df = pd.DataFrame(notes)
-        key_name, _ = detect_key_from_notes(spiral, df)
-        assert key_name == f"{root} minor", f"Failed to detect {root} minor key"
+        key_name, probs = detect_key_from_notes(spiral, df)
+
+        if key_name != f"{root} minor":
+            failed_keys.append(root)
+            # Get top 3 detected keys for debugging
+            top_3 = sorted([(spiral.key_names[i], probs[i]) for i in range(24)], key=lambda x: x[1], reverse=True)[:3]
+            failure_details.append(f"\n{root} minor test failed:")
+            failure_details.append(f"Expected: {root} minor")
+            failure_details.append(f"Got: {key_name}")
+            failure_details.append(f"Top 3 candidates: {top_3}")
+
+    if failed_keys:
+        failure_message = "\n".join(
+            [
+                f"Failed to detect the following minor keys: {', '.join(failed_keys)}",
+                "Detailed failures:",
+                *failure_details,
+            ]
+        )
+        pytest.fail(failure_message)
 
 
 def test_problematic_keys(spiral):
     """Test specifically challenging keys for the Spiral Array model."""
     problem_cases = {
-        # Simpler progressions for trouble spots
         "F#": ([66, 70, 73], [73, 77, 80]),  # F# -> C# (fifth)
         "F": ([65, 69, 72], [72, 76, 79]),  # F -> C (fifth)
         "D#": ([63, 67, 70], [70, 74, 77]),  # D# -> A# (fifth)
     }
 
+    failed_keys = []
+    failure_details = []
+
     for root, (I, V) in problem_cases.items():
         notes = []
-        # Use only tonic-dominant relationship with strong emphasis on tonic
         notes.extend(create_chord(I, 0.0, 3.0))  # Tonic (longer)
         notes.extend(create_chord(V, 3.0, 1.0))  # Dominant (shorter)
         notes.extend(create_chord(I, 4.0, 2.0))  # Tonic (again)
 
         df = pd.DataFrame(notes)
         key_name, probs = detect_key_from_notes(spiral, df)
-        print(f"\nFor {root} major:")  # Let's see the probability distribution
-        top_3 = sorted([(spiral.key_names[i], probs[i]) for i in range(24)], key=lambda x: x[1], reverse=True)[:3]
-        print(f"Top 3 candidates: {top_3}")
-        assert key_name == f"{root} major", f"Failed to detect {root} major key"
+
+        if key_name != f"{root} major":
+            failed_keys.append(root)
+            # Get top 3 detected keys for debugging
+            top_3 = sorted(
+                [(spiral.key_names[i], probs[i]) for i in range(24)],
+                key=lambda x: x[1],
+                reverse=True,
+            )[:3]
+            failure_details.append(f"\n{root} major test failed:")
+            failure_details.append(f"Expected: {root} major")
+            failure_details.append(f"Got: {key_name}")
+            failure_details.append(f"Top 3 candidates: {top_3}")
+
+    if failed_keys:
+        failure_message = "\n".join(
+            [
+                f"Failed to detect the following problematic keys: {', '.join(failed_keys)}",
+                "Detailed failures:",
+                *failure_details,
+            ]
+        )
+        pytest.fail(failure_message)
