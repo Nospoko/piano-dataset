@@ -258,7 +258,11 @@ def analyze_piece(
     use_weighted: bool = True,
 ) -> Dict:
     if len(notes_df) == 0:
-        return {"overall_distribution": np.zeros(24), "segment_keys": [], "top_keys": []}
+        return {
+            "overall_distribution": np.zeros(24),
+            "segment_keys": [],
+            "top_keys": [],
+        }
 
     total_duration = notes_df["end"].max()
     segments = []
@@ -286,13 +290,17 @@ def analyze_piece(
     top_key_indices = np.argsort(-overall_distribution)[:3]
     top_keys = [spiral.key_names[i] for i in top_key_indices]
 
-    return {"overall_distribution": overall_distribution, "segment_keys": segment_keys, "top_keys": top_keys}
+    return {
+        "overall_distribution": overall_distribution,
+        "segment_keys": segment_keys,
+        "top_keys": top_keys,
+    }
 
 
 def calculate_key_correlation(
     target_df: pd.DataFrame,
     generated_df: pd.DataFrame,
-    segment_duration: float = 0.125,  # 125ms segments as suggested in paper
+    segment_duration: float = 0.5,
     use_weighted: bool = True,
 ) -> Tuple[float, Dict]:
     """
@@ -324,7 +332,10 @@ def calculate_key_correlation(
     generated_analysis = analyze_piece(spiral, generated_df, segment_duration, use_weighted)
 
     # Calculate correlation coefficient
-    correlation = np.corrcoef(target_analysis["overall_distribution"], generated_analysis["overall_distribution"])[0, 1]
+    correlation = np.corrcoef(
+        target_analysis["overall_distribution"],
+        generated_analysis["overall_distribution"],
+    )[0, 1]
 
     metrics = {
         "target_distribution": target_analysis["overall_distribution"],
