@@ -6,6 +6,10 @@ import pandas as pd
 
 from piano_metrics.f1_piano import calculate_f1
 from piano_metrics.key_distribution import calculate_key_correlation
+from piano_metrics.pitch_distribution import calculate_pitch_correlation
+from piano_metrics.dstart_distribution import calculate_dstart_correlation
+from piano_metrics.duration_distribuiton import calculate_duration_correlation
+from piano_metrics.velocity_distribution import calculate_velocity_correlation
 
 
 @dataclass
@@ -34,7 +38,12 @@ class PianoMetric(ABC):
 class F1Metric(PianoMetric):
     """Wrapper for F1 score calculation"""
 
-    def __init__(self, use_pitch_class: bool = False, velocity_threshold: float = 30, min_time_unit: float = 0.01):
+    def __init__(
+        self,
+        use_pitch_class: bool = False,
+        velocity_threshold: float = 30,
+        min_time_unit: float = 0.01,
+    ):
         self.use_pitch_class = use_pitch_class
         self.velocity_threshold = velocity_threshold
         self.min_time_unit = min_time_unit
@@ -47,7 +56,11 @@ class F1Metric(PianoMetric):
             "min_time_unit": self.min_time_unit,
         }
 
-    def calculate(self, target_df: pd.DataFrame, generated_df: pd.DataFrame) -> MetricResult:
+    def calculate(
+        self,
+        target_df: pd.DataFrame,
+        generated_df: pd.DataFrame,
+    ) -> MetricResult:
         f1_score, detailed_metrics = calculate_f1(
             target_df=target_df,
             generated_df=generated_df,
@@ -70,7 +83,11 @@ class F1Metric(PianoMetric):
 class KeyCorrelationMetric(PianoMetric):
     """Wrapper for key correlation calculation"""
 
-    def __init__(self, segment_duration: float = 0.125, use_weighted: bool = True):
+    def __init__(
+        self,
+        segment_duration: float = 0.125,
+        use_weighted: bool = True,
+    ):
         self.segment_duration = segment_duration
         self.use_weighted = use_weighted
 
@@ -83,7 +100,10 @@ class KeyCorrelationMetric(PianoMetric):
 
     def calculate(self, target_df: pd.DataFrame, generated_df: pd.DataFrame) -> MetricResult:
         correlation, metrics = calculate_key_correlation(
-            target_df=target_df, generated_df=generated_df, segment_duration=self.segment_duration, use_weighted=self.use_weighted
+            target_df=target_df,
+            generated_df=generated_df,
+            segment_duration=self.segment_duration,
+            use_weighted=self.use_weighted,
         )
         return MetricResult(
             value=correlation,
@@ -95,6 +115,146 @@ class KeyCorrelationMetric(PianoMetric):
         return f"key_correlation{'_weighted' if self.use_weighted else '_unweighted'}"
 
 
+class DstartCorrelationMetric(PianoMetric):
+    """Wrapper for dstart (time between consecutive notes) correlation calculation"""
+
+    def __init__(self, n_bins: int = 50):
+        self.n_bins = n_bins
+
+    @property
+    def config(self):
+        return {
+            "n_bins": self.n_bins,
+        }
+
+    def calculate(
+        self,
+        target_df: pd.DataFrame,
+        generated_df: pd.DataFrame,
+    ) -> MetricResult:
+        correlation, metrics = calculate_dstart_correlation(
+            target_df=target_df,
+            generated_df=generated_df,
+            n_bins=self.n_bins,
+        )
+        return MetricResult(
+            value=correlation,
+            metadata={
+                "detailed_metrics": metrics,
+                "config": self.config,
+            },
+        )
+
+    @property
+    def name(self) -> str:
+        return "dstart_correlation"
+
+
+class DurationCorrelationMetric(PianoMetric):
+    """Wrapper for note duration correlation calculation"""
+
+    def __init__(self, n_bins: int = 50):
+        self.n_bins = n_bins
+
+    @property
+    def config(self):
+        return {
+            "n_bins": self.n_bins,
+        }
+
+    def calculate(
+        self,
+        target_df: pd.DataFrame,
+        generated_df: pd.DataFrame,
+    ) -> MetricResult:
+        correlation, metrics = calculate_duration_correlation(
+            target_df=target_df,
+            generated_df=generated_df,
+            n_bins=self.n_bins,
+        )
+        return MetricResult(
+            value=correlation,
+            metadata={
+                "detailed_metrics": metrics,
+                "config": self.config,
+            },
+        )
+
+    @property
+    def name(self) -> str:
+        return "duration_correlation"
+
+
+class VelocityCorrelationMetric(PianoMetric):
+    """Wrapper for velocity distribution correlation calculation"""
+
+    def __init__(self, use_weighted: bool = True):
+        self.use_weighted = use_weighted
+
+    @property
+    def config(self):
+        return {
+            "use_weighted": self.use_weighted,
+        }
+
+    def calculate(
+        self,
+        target_df: pd.DataFrame,
+        generated_df: pd.DataFrame,
+    ) -> MetricResult:
+        correlation, metrics = calculate_velocity_correlation(
+            target_df=target_df,
+            generated_df=generated_df,
+            use_weighted=self.use_weighted,
+        )
+        return MetricResult(
+            value=correlation,
+            metadata={
+                "detailed_metrics": metrics,
+                "config": self.config,
+            },
+        )
+
+    @property
+    def name(self) -> str:
+        return f"velocity_correlation{'_weighted' if self.use_weighted else '_unweighted'}"
+
+
+class PitchCorrelationMetric(PianoMetric):
+    """Wrapper for pitch distribution correlation calculation"""
+
+    def __init__(self, use_weighted: bool = True):
+        self.use_weighted = use_weighted
+
+    @property
+    def config(self):
+        return {
+            "use_weighted": self.use_weighted,
+        }
+
+    def calculate(
+        self,
+        target_df: pd.DataFrame,
+        generated_df: pd.DataFrame,
+    ) -> MetricResult:
+        correlation, metrics = calculate_pitch_correlation(
+            target_df=target_df,
+            generated_df=generated_df,
+            use_weighted=self.use_weighted,
+        )
+        return MetricResult(
+            value=correlation,
+            metadata={
+                "detailed_metrics": metrics,
+                "config": self.config,
+            },
+        )
+
+    @property
+    def name(self) -> str:
+        return f"pitch_correlation{'_weighted' if self.use_weighted else '_unweighted'}"
+
+
 class MetricsRunner:
     """Orchestrates the calculation of multiple metrics"""
 
@@ -103,14 +263,22 @@ class MetricsRunner:
         for metric in metrics:
             self.register_metric(metric)
 
-    def calculate_all(self, target_df: pd.DataFrame, generated_df: pd.DataFrame) -> Dict[str, MetricResult]:
+    def calculate_all(
+        self,
+        target_df: pd.DataFrame,
+        generated_df: pd.DataFrame,
+    ) -> Dict[str, MetricResult]:
         """Calculate all metrics for a single example"""
         results = {}
         for metric_name, metric in self.metrics.items():
             results[metric_name] = metric.calculate(target_df, generated_df)
         return results
 
-    def calculate_batch(self, targets: List[pd.DataFrame], generations: List[pd.DataFrame]) -> Dict[str, List[MetricResult]]:
+    def calculate_batch(
+        self,
+        targets: List[pd.DataFrame],
+        generations: List[pd.DataFrame],
+    ) -> Dict[str, List[MetricResult]]:
         """Calculate metrics for a batch of examples"""
         batch_results = {metric_name: [] for metric_name in self.metrics}
 
