@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 
 
-def calculate_pitch_weights(
+def calculate_velocity_weights(
     df: pd.DataFrame,
     use_weighted: bool = True,
 ) -> np.ndarray:
-    """Calculate weighted pitch distribution across 88 piano keys (21-108 MIDI range)"""
+    """Calculate weighted velocity distribution across 128 possible velocity values."""
     distribution = np.zeros(88)
 
     if len(df) == 0:
@@ -20,9 +20,9 @@ def calculate_pitch_weights(
             weight = 1.0
             if use_weighted:
                 duration = note["end"] - note["start"]
-                velocity = note["velocity"] / 127.0
-                weight = duration * velocity
-            distribution[pitch_idx] += weight
+                velocity = note["velocity"]
+                weight = duration
+            distribution[velocity] += weight
 
     # Normalize distribution
     total = np.sum(distribution)
@@ -32,13 +32,13 @@ def calculate_pitch_weights(
     return distribution
 
 
-def calculate_pitch_correlation(
+def calculate_velocity_correlation(
     target_df: pd.DataFrame,
     generated_df: pd.DataFrame,
     use_weighted: bool = True,
 ) -> Tuple[float, Dict]:
     """
-    Calculate correlation coefficient between pitch distributions of two MIDI sequences.
+    Calculate correlation coefficient between velocity distributions of two MIDI sequences.
 
     Parameters
     ----------
@@ -47,7 +47,7 @@ def calculate_pitch_correlation(
     generated_df : pd.DataFrame
         DataFrame containing generated notes with columns: pitch, velocity, start, end.
     use_weighted : bool
-        If True, weight pitch contributions by note duration and velocity.
+        If True, weight velocity contributions by note duration.
 
     Returns
     -------
@@ -56,8 +56,8 @@ def calculate_pitch_correlation(
     metrics : dict
         Additional metrics including pitch distributions.
     """
-    target_dist = calculate_pitch_weights(target_df, use_weighted)
-    generated_dist = calculate_pitch_weights(generated_df, use_weighted)
+    target_dist = calculate_velocity_weights(target_df, use_weighted)
+    generated_dist = calculate_velocity_weights(generated_df, use_weighted)
 
     correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
 
