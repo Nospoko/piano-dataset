@@ -16,7 +16,7 @@ def calculate_velocity_weights(
 
     for _, note in df.iterrows():
         weight = 1.0
-        velocity = note["velocity"]
+        velocity = int(note["velocity"])
         if use_weighted:
             duration = note["end"] - note["start"]
             weight = duration
@@ -52,7 +52,7 @@ def calculate_velocity_correlation(
     correlation : float
         Correlation coefficient ranging from -1 to 1.
     metrics : dict
-        Additional metrics including pitch distributions.
+        Additional metrics including velocity distributions.
     """
     target_dist = calculate_velocity_weights(target_df, use_weighted)
     generated_dist = calculate_velocity_weights(generated_df, use_weighted)
@@ -62,9 +62,9 @@ def calculate_velocity_correlation(
     metrics = {
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
-        "target_active_pitches": np.count_nonzero(target_dist),
-        "generated_active_pitches": np.count_nonzero(generated_dist),
-        "pitch_range": list(range(21, 109)),  # MIDI pitch numbers
+        "target_velocities": np.count_nonzero(target_dist),
+        "generated_velocities": np.count_nonzero(generated_dist),
+        "velocity_range": list(range(0, 127)),  # MIDI velocity numbers
     }
 
     return correlation, metrics

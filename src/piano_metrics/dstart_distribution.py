@@ -9,40 +9,40 @@ def calculate_dstart_distribution(
     n_bins: int,
 ) -> np.ndarray:
     """Calculate dstart distribution.
-    
+
     Parameters
     ----------
         df : pd.DataFrame
             DataFrame containing 'start' column with timestamps
         n_bins : int
             Number of quantization bins for dstart values
-        
+
     Returns
     -------
-        distribution: np.ndarray: 
+        distribution: np.ndarray:
             Normalized distribution of time differences between consecutive starts
     """
     if len(df) == 0:
         return np.array([])
-        
+
     notes = df.copy()
     # Calculate time differences between consecutive starts
-    notes["dstart"] = df.start - df.start.shift(-1)
+    notes["dstart"] = df.start.shift(-1) - df.start
     notes = notes.dropna(subset=["dstart"])
-    
+    bin_edges = np.linspace(start=0, stop=2, num=n_bins)
+
     # Create histogram of time differences
     hist, bin_edges = np.histogram(
         notes["dstart"],
-        bins=np.linspace(start=0, stop=2, num=n_bins), 
-        range=(0, notes["dstart"].quantile(0.99)), 
+        bins=bin_edges,
     )
     distribution = hist.astype(float)
-    
+
     # Normalize distribution
     total = np.sum(distribution)
     if total > 0:
         distribution = distribution / total
-        
+
     return distribution
 
 
@@ -68,7 +68,7 @@ def calculate_dstart_correlation(
     correlation : float
         Correlation coefficient ranging from -1 to 1.
     metrics : dict
-        Additional metrics including pitch distributions.
+        Additional metrics including dstart distributions.
     """
     target_dist = calculate_dstart_distribution(target_df, n_bins)
     generated_dist = calculate_dstart_distribution(generated_df, n_bins)
@@ -78,9 +78,8 @@ def calculate_dstart_correlation(
     metrics = {
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
-        "target_active_pitches": np.count_nonzero(target_dist),
-        "generated_active_pitches": np.count_nonzero(generated_dist),
-        "pitch_range": list(range(21, 109)),  # MIDI pitch numbers
+        "target_dstarts": np.count_nonzero(target_dist),
+        "generated_dstarts": np.count_nonzero(generated_dist),
     }
 
     return correlation, metrics

@@ -115,7 +115,7 @@ def main():
         num_top_keys = st.number_input(
             "Number of top keys to display",
             value=5,
-            max=24,
+            max_value=24,
             help="Number of most probable keys to show in the timeline",
         )
 
