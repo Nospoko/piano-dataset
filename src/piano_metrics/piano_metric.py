@@ -8,7 +8,7 @@ from piano_metrics.f1_piano import calculate_f1
 from piano_metrics.key_distribution import calculate_key_correlation
 from piano_metrics.pitch_distribution import calculate_pitch_correlation
 from piano_metrics.dstart_distribution import calculate_dstart_correlation
-from piano_metrics.duration_distribuiton import calculate_duration_correlation
+from piano_metrics.duration_distribution import calculate_duration_correlation
 from piano_metrics.velocity_distribution import calculate_velocity_correlation
 
 
@@ -271,7 +271,11 @@ class MetricsRunner:
         """Calculate all metrics for a single example"""
         results = {}
         for metric_name, metric in self.metrics.items():
-            results[metric_name] = metric.calculate(target_df, generated_df)
+            try:
+                results[metric_name] = metric.calculate(target_df, generated_df)
+            except Exception as e:
+                print(f"Error when calculating metric {metric_name}: {e}")
+                results[metric_name] = MetricResult(0.0, None)
         return results
 
     def calculate_batch(
