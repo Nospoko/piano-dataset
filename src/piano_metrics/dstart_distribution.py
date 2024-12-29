@@ -1,5 +1,3 @@
-from typing import Dict, Tuple
-
 import numpy as np
 import pandas as pd
 
@@ -46,11 +44,11 @@ def calculate_dstart_distribution(
     return distribution
 
 
-def calculate_dstart_correlation(
+def calculate_dstart_metrics(
     target_df: pd.DataFrame,
     generated_df: pd.DataFrame,
     n_bins: int = 50,
-) -> Tuple[float, Dict]:
+) -> dict:
     """
     Calculate correlation coefficient between velocity distributions of two MIDI sequences.
 
@@ -76,10 +74,11 @@ def calculate_dstart_correlation(
     correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
 
     metrics = {
+        "correlation": correlation,
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
         "target_dstarts": np.count_nonzero(target_dist),
         "generated_dstarts": np.count_nonzero(generated_dist),
     }
 
-    return correlation, metrics
+    return metrics

@@ -7,7 +7,7 @@ import pandas as pd
 from piano_metrics.f1_piano import calculate_f1
 from piano_metrics.key_distribution import calculate_key_metrics
 from piano_metrics.pitch_distribution import calculate_pitch_metrics
-from piano_metrics.dstart_distribution import calculate_dstart_correlation
+from piano_metrics.dstart_distribution import calculate_dstart_metrics
 from piano_metrics.velocity_distribution import calculate_velocity_metrics
 from piano_metrics.duration_distribution import calculate_duration_correlation
 
@@ -138,7 +138,7 @@ class DstartCorrelationMetric(PianoMetric):
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
     ) -> MetricResult:
-        dstart_metrics = calculate_dstart_correlation(
+        dstart_metrics = calculate_dstart_metrics(
             target_df=target_df,
             generated_df=generated_df,
             n_bins=self.n_bins,
