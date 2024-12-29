@@ -210,6 +210,7 @@ def detect_key_from_notes(
     segment_duration : Optional[float]
         Duration of the segment. If None, uses the entire notes_df
     use_weighted : bool
+        TODO: Explain the weighting mechanism
         Whether to weight notes by duration and velocity
 
     Returns:
@@ -272,8 +273,8 @@ def analyze_piece(
     current_time = 0
     while current_time < total_duration:
         key_name, key_probs = detect_key_from_notes(
-            spiral,
-            notes_df,
+            spiral=spiral,
+            notes=notes_df,
             segment_start=current_time,
             segment_duration=segment_duration,
             use_weighted=use_weighted,
@@ -297,12 +298,12 @@ def analyze_piece(
     }
 
 
-def calculate_key_correlation(
+def calculate_key_metrics(
     target_df: pd.DataFrame,
     generated_df: pd.DataFrame,
     segment_duration: float = 0.5,
     use_weighted: bool = True,
-) -> Tuple[float, Dict]:
+) -> dict:
     """
     Calculate correlation coefficient between target and generated MIDI sequences
     using Spiral Array key detection algorithm.
@@ -328,18 +329,25 @@ def calculate_key_correlation(
     spiral = SpiralArray()
 
     # Analyze both pieces
-    target_analysis = analyze_piece(spiral, target_df, segment_duration, use_weighted)
+    target_analysis = analyze_piece(
+        spiral=spiral,
+        notes_df=target_df,
+        segment_duration=segment_duration,
+        use_weighted=use_weighted,
+    )
     generated_analysis = analyze_piece(spiral, generated_df, segment_duration, use_weighted)
 
     # Calculate correlation coefficient
-    correlation = np.corrcoef(
-        target_analysis["overall_distribution"],
-        generated_analysis["overall_distribution"],
-    )[0, 1]
+    target_dist = target_analysis["overall_distribution"]
+    generated_dist = generated_analysis["overall_distribution"]
+    correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
+    taxicab_distance = np.sum(np.abs(target_dist - generated_dist))
 
     metrics = {
-        "target_distribution": target_analysis["overall_distribution"],
-        "generated_distribution": generated_analysis["overall_distribution"],
+        "correlation": correlation,
+        "taxicab_distance": taxicab_distance,
+        "target_distribution": target_dist,
+        "generated_distribution": generated_dist,
         "num_segments": len(target_analysis["segment_keys"]),
         "segment_duration": segment_duration,
         "key_names": spiral.key_names,
@@ -347,4 +355,4 @@ def calculate_key_correlation(
         "generated_top_keys": generated_analysis["top_keys"],
     }
 
-    return correlation, metrics
+    return metrics

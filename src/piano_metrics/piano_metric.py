@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 from piano_metrics.f1_piano import calculate_f1
-from piano_metrics.key_distribution import calculate_key_correlation
+from piano_metrics.key_distribution import calculate_key_metrics
 from piano_metrics.pitch_distribution import calculate_pitch_correlation
 from piano_metrics.dstart_distribution import calculate_dstart_correlation
 from piano_metrics.velocity_distribution import calculate_velocity_metrics
@@ -107,7 +107,7 @@ class KeyCorrelationMetric(PianoMetric):
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
     ) -> MetricResult:
-        key_metrics = calculate_key_correlation(
+        key_metrics = calculate_key_metrics(
             target_df=target_df,
             generated_df=generated_df,
             segment_duration=self.segment_duration,

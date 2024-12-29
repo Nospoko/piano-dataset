@@ -9,7 +9,7 @@ import streamlit_pianoroll
 import plotly.graph_objects as go
 from datasets import Dataset, load_dataset
 
-from piano_metrics.key_distribution import calculate_key_correlation
+from piano_metrics.key_distribution import calculate_key_metrics
 
 
 def select_part_dataset(
@@ -209,7 +209,7 @@ will have more influence on determining the key than an eighth note with velocit
 
         # Analyze pieces
         with st.spinner("Analyzing key distributions..."):
-            correlation, metrics = calculate_key_correlation(
+            key_metrics = calculate_key_metrics(
                 target_df=piece1.df,
                 generated_df=piece2.df,
                 segment_duration=segment_duration,
@@ -218,6 +218,7 @@ will have more influence on determining the key than an eighth note with velocit
 
         # Display results
         st.header("Analysis Results")
+        correlation = key_metrics["correlation"]
         st.metric("Correlation Coefficient", f"{correlation:.3f}")
 
         # Key distributions
@@ -225,19 +226,19 @@ will have more influence on determining the key than an eighth note with velocit
         col1, col2 = st.columns(2)
 
         with col1:
-            st.write("Top keys in first piece:", ", ".join(metrics["target_top_keys"]))
+            st.write("Top keys in first piece:", ", ".join(key_metrics["target_top_keys"]))
             fig1 = plot_key_distribution(
-                metrics["target_distribution"],
-                list(metrics["key_names"].values()),
+                key_metrics["target_distribution"],
+                list(key_metrics["key_names"].values()),
                 "Key Distribution 1",
             )
             st.plotly_chart(fig1)
 
         with col2:
-            st.write("Top keys in second piece:", ", ".join(metrics["generated_top_keys"]))
+            st.write("Top keys in second piece:", ", ".join(key_metrics["generated_top_keys"]))
             fig2 = plot_key_distribution(
-                metrics["generated_distribution"],
-                list(metrics["key_names"].values()),
+                key_metrics["generated_distribution"],
+                list(key_metrics["key_names"].values()),
                 "Key Distribution 2",
             )
             st.plotly_chart(fig2)
@@ -245,10 +246,10 @@ will have more influence on determining the key than an eighth note with velocit
         # Correlation heatmap
         st.subheader("Key Distribution Correlation")
         fig3 = plot_key_correlation_heatmap(
-            metrics["target_distribution"],
-            metrics["generated_distribution"],
+            key_metrics["target_distribution"],
+            key_metrics["generated_distribution"],
             list(
-                metrics["key_names"].values(),
+                key_metrics["key_names"].values(),
             ),
         )
         st.plotly_chart(fig3)
