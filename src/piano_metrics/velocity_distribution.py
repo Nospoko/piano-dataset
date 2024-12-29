@@ -1,5 +1,3 @@
-from typing import Dict, Tuple
-
 import numpy as np
 import pandas as pd
 
@@ -34,7 +32,7 @@ def calculate_velocity_correlation(
     target_df: pd.DataFrame,
     generated_df: pd.DataFrame,
     use_weighted: bool = True,
-) -> Tuple[float, Dict]:
+) -> dict:
     """
     Calculate correlation coefficient between velocity distributions of two MIDI sequences.
 
@@ -65,6 +63,7 @@ def calculate_velocity_correlation(
         "target_velocities": np.count_nonzero(target_dist),
         "generated_velocities": np.count_nonzero(generated_dist),
         "velocity_range": list(range(0, 127)),  # MIDI velocity numbers
+        "correlation": correlation,
     }
 
-    return correlation, metrics
+    return metrics

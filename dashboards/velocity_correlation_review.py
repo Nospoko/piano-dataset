@@ -19,7 +19,12 @@ def plot_velocity_distribution(
     fig = go.Figure()
 
     fig.add_trace(
-        go.Bar(x=velocity_values, y=distribution, name="Velocity Distribution", marker_color="rgb(109, 55, 83)"),
+        go.Bar(
+            x=velocity_values,
+            y=distribution,
+            name="Velocity Distribution",
+            marker_color="rgb(109, 55, 83)",
+        ),
     )
 
     fig.update_layout(
@@ -40,7 +45,12 @@ def plot_velocity_correlation_heatmap(
     velocity_values = list(range(128))
 
     fig = go.Figure(
-        data=go.Heatmap(z=correlation_matrix, x=velocity_values, y=velocity_values, colorscale="Viridis"),
+        data=go.Heatmap(
+            z=correlation_matrix,
+            x=velocity_values,
+            y=velocity_values,
+            colorscale="Viridis",
+        ),
     )
 
     fig.update_layout(
@@ -63,67 +73,79 @@ def main():
         dataset_2 = dataset_configuration(key="1")
         record_id_2 = st.number_input(label=f"Record number [0-{len(dataset_2)}]", value=0, key="record_id_1")
 
-    if len(dataset_1) > 0 and len(dataset_2) > 0:
-        piece1 = ff.MidiPiece.from_huggingface(dataset_1[record_id_1])
-        piece2 = ff.MidiPiece.from_huggingface(dataset_2[record_id_2])
+    if len(dataset_1) == 0 or len(dataset_2) == 0:
+        st.error("Could not find selected pieces in dataset")
+        return
 
-        # Analysis parameters
-        st.header("Analysis Parameters")
-        use_weighted = st.checkbox(
-            "Weight velocity by duration",
-            value=True,
-            help="""
+    piece1 = ff.MidiPiece.from_huggingface(dataset_1[record_id_1])
+    piece2 = ff.MidiPiece.from_huggingface(dataset_2[record_id_2])
+
+    # Analysis parameters
+    st.header("Analysis Parameters")
+    use_weighted = st.checkbox(
+        "Weight velocity by duration",
+        value=True,
+        help="""
 Controls how each note affects the velocity distribution:
 - When enabled: Longer notes have stronger influence on the velocity distribution
 - When disabled: All notes contribute equally regardless of length
 
 Example: A half note at velocity 80 will contribute more
 than an eighth note at velocity 80 when weighting is enabled.""",
+    )
+
+    # Visualization of pieces
+    st.header("Piece Visualizations")
+    col1, col2 = st.columns(2)
+    with col1:
+        streamlit_pianoroll.from_fortepyan(piece=piece1)
+    with col2:
+        right_key = "right-" + json.dumps(piece2.source)
+        streamlit_pianoroll.from_fortepyan(piece=piece2, key=right_key)
+
+    # Analyze pieces
+    with st.spinner("Analyzing velocity distributions..."):
+        velocity_metrics = calculate_velocity_correlation(
+            target_df=piece1.df,
+            generated_df=piece2.df,
+            use_weighted=use_weighted,
         )
 
-        # Visualization of pieces
-        st.header("Piece Visualizations")
-        col1, col2 = st.columns(2)
-        with col1:
-            streamlit_pianoroll.from_fortepyan(piece=piece1)
-        with col2:
-            right_key = "right-" + json.dumps(piece2.source)
-            streamlit_pianoroll.from_fortepyan(piece=piece2, key=right_key)
+    # Display results
+    st.header("Analysis Results")
+    correlation = velocity_metrics["correlation"]
+    st.metric("Velocity Correlation Coefficient", f"{correlation:.3f}")
 
-        # Analyze pieces
-        with st.spinner("Analyzing velocity distributions..."):
-            correlation, metrics = calculate_velocity_correlation(
-                target_df=piece1.df, generated_df=piece2.df, use_weighted=use_weighted
-            )
+    # Additional metrics
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Active Velocities in Piece 1", velocity_metrics["target_velocities"])
+    with col2:
+        st.metric("Active Velocities in Piece 2", velocity_metrics["generated_velocities"])
 
-        # Display results
-        st.header("Analysis Results")
-        st.metric("Velocity Correlation Coefficient", f"{correlation:.3f}")
+    # Velocity distributions
+    st.subheader("Velocity Distributions")
+    col1, col2 = st.columns(2)
+    with col1:
+        fig1 = plot_velocity_distribution(
+            distribution=velocity_metrics["target_distribution"],
+            title="Velocity Distribution 1",
+        )
+        st.plotly_chart(fig1)
+    with col2:
+        fig2 = plot_velocity_distribution(
+            distribution=velocity_metrics["generated_distribution"],
+            title="Velocity Distribution 2",
+        )
+        st.plotly_chart(fig2)
 
-        # Additional metrics
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Active Velocities in Piece 1", metrics["target_velocities"])
-        with col2:
-            st.metric("Active Velocities in Piece 2", metrics["generated_velocities"])
-
-        # Velocity distributions
-        st.subheader("Velocity Distributions")
-        col1, col2 = st.columns(2)
-        with col1:
-            fig1 = plot_velocity_distribution(metrics["target_distribution"], "Velocity Distribution 1")
-            st.plotly_chart(fig1)
-        with col2:
-            fig2 = plot_velocity_distribution(metrics["generated_distribution"], "Velocity Distribution 2")
-            st.plotly_chart(fig2)
-
-        # Correlation heatmap
-        st.subheader("Velocity Distribution Correlation")
-        fig3 = plot_velocity_correlation_heatmap(metrics["target_distribution"], metrics["generated_distribution"])
-        st.plotly_chart(fig3)
-
-    else:
-        st.error("Could not find selected pieces in dataset")
+    # Correlation heatmap
+    st.subheader("Velocity Distribution Correlation")
+    fig3 = plot_velocity_correlation_heatmap(
+        target_dist=velocity_metrics["target_distribution"],
+        generated_dist=velocity_metrics["generated_distribution"],
+    )
+    st.plotly_chart(fig3)
 
 
 if __name__ == "__main__":
