@@ -28,6 +28,8 @@ def calculate_duration_distribution(
     notes["duration"] = df.end - df.start
     notes = notes.dropna(subset=["duration"])
 
+    # FIXME Looks like "5" is a magic number that has
+    # to be synchronised in multiple spots
     # Create histogram of durations
     hist, bin_edges = np.histogram(
         notes["duration"],

@@ -16,7 +16,7 @@ from piano_metrics.velocity_distribution import calculate_velocity_metrics
 class MetricResult:
     """Store metric calculation results with metadata"""
 
-    metics: dict
+    metrics: dict
     metadata: Dict[str, Any] = None
 
 
