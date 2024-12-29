@@ -1,5 +1,3 @@
-from typing import Dict, Tuple
-
 import numpy as np
 import pandas as pd
 
@@ -46,11 +44,11 @@ def calculate_duration_distribution(
     return distribution
 
 
-def calculate_duration_correlation(
+def calculate_duration_metrics(
     target_df: pd.DataFrame,
     generated_df: pd.DataFrame,
     n_bins: int = 100,
-) -> Tuple[float, Dict]:
+) -> dict:
     """
     Calculate correlation coefficient between duration distributions of two MIDI sequences.
 
@@ -76,6 +74,7 @@ def calculate_duration_correlation(
     correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
 
     metrics = {
+        "correlation": correlation,
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
         "target_durations": np.count_nonzero(target_dist),
@@ -83,4 +82,4 @@ def calculate_duration_correlation(
         "duration_range": list(np.linspace(0, 5, n_bins)),  # Duration values in seconds
     }
 
-    return correlation, metrics
+    return metrics
