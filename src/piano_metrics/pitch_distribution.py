@@ -1,5 +1,3 @@
-from typing import Dict, Tuple
-
 import numpy as np
 import pandas as pd
 
@@ -32,11 +30,11 @@ def calculate_pitch_weights(
     return distribution
 
 
-def calculate_pitch_correlation(
+def calculate_pitch_metrics(
     target_df: pd.DataFrame,
     generated_df: pd.DataFrame,
     use_weighted: bool = True,
-) -> Tuple[float, Dict]:
+) -> dict:
     """
     Calculate correlation coefficient between pitch distributions of two MIDI sequences.
 
@@ -62,6 +60,7 @@ def calculate_pitch_correlation(
     correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
 
     metrics = {
+        "correlation": correlation,
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
         "target_active_pitches": np.count_nonzero(target_dist),
@@ -69,4 +68,4 @@ def calculate_pitch_correlation(
         "pitch_range": list(range(21, 109)),  # MIDI pitch numbers
     }
 
-    return correlation, metrics
+    return metrics
