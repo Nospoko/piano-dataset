@@ -7,7 +7,7 @@ import streamlit_pianoroll
 import plotly.graph_objects as go
 
 from dashboards.utils import dataset_configuration
-from piano_metrics.velocity_distribution import calculate_velocity_correlation
+from piano_metrics.velocity_distribution import calculate_velocity_metrics
 
 
 def plot_velocity_distribution(
@@ -105,7 +105,7 @@ than an eighth note at velocity 80 when weighting is enabled.""",
 
     # Analyze pieces
     with st.spinner("Analyzing velocity distributions..."):
-        velocity_metrics = calculate_velocity_correlation(
+        velocity_metrics = calculate_velocity_metrics(
             target_df=piece1.df,
             generated_df=piece2.df,
             use_weighted=use_weighted,
@@ -113,8 +113,12 @@ than an eighth note at velocity 80 when weighting is enabled.""",
 
     # Display results
     st.header("Analysis Results")
+
     correlation = velocity_metrics["correlation"]
+    taxicab_distance = velocity_metrics["taxicab_distance"]
+
     st.metric("Velocity Correlation Coefficient", f"{correlation:.3f}")
+    st.metric("Velocity Taxicab", f"{taxicab_distance:.3f}")
 
     # Additional metrics
     col1, col2 = st.columns(2)

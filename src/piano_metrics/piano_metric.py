@@ -8,15 +8,15 @@ from piano_metrics.f1_piano import calculate_f1
 from piano_metrics.key_distribution import calculate_key_correlation
 from piano_metrics.pitch_distribution import calculate_pitch_correlation
 from piano_metrics.dstart_distribution import calculate_dstart_correlation
+from piano_metrics.velocity_distribution import calculate_velocity_metrics
 from piano_metrics.duration_distribution import calculate_duration_correlation
-from piano_metrics.velocity_distribution import calculate_velocity_correlation
 
 
 @dataclass
 class MetricResult:
     """Store metric calculation results with metadata"""
 
-    value: float
+    metics: dict
     metadata: Dict[str, Any] = None
 
 
@@ -24,7 +24,11 @@ class PianoMetric(ABC):
     """Abstract base class for all piano performance metrics"""
 
     @abstractmethod
-    def calculate(self, target_df: pd.DataFrame, generated_df: pd.DataFrame) -> MetricResult:
+    def calculate(
+        self,
+        target_df: pd.DataFrame,
+        generated_df: pd.DataFrame,
+    ) -> MetricResult:
         """Calculate metric between target and generated performances"""
         pass
 
@@ -61,19 +65,19 @@ class F1Metric(PianoMetric):
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
     ) -> MetricResult:
-        f1_score, detailed_metrics = calculate_f1(
+        f1_metrics = calculate_f1(
             target_df=target_df,
             generated_df=generated_df,
             velocity_threshold=self.velocity_threshold,
             use_pitch_class=self.use_pitch_class,
         )
-        return MetricResult(
-            value=f1_score,
+        result = MetricResult(
+            metrics=f1_metrics,
             metadata={
-                "detailed_metrics": detailed_metrics,
                 "config": self.config,
             },
         )
+        return result
 
     @property
     def name(self) -> str:
@@ -98,17 +102,19 @@ class KeyCorrelationMetric(PianoMetric):
             "use_weighted": self.use_weighted,
         }
 
-    def calculate(self, target_df: pd.DataFrame, generated_df: pd.DataFrame) -> MetricResult:
-        correlation, metrics = calculate_key_correlation(
+    def calculate(
+        self,
+        target_df: pd.DataFrame,
+        generated_df: pd.DataFrame,
+    ) -> MetricResult:
+        key_metrics = calculate_key_correlation(
             target_df=target_df,
             generated_df=generated_df,
             segment_duration=self.segment_duration,
             use_weighted=self.use_weighted,
         )
-        return MetricResult(
-            value=correlation,
-            metadata={"detailed_metrics": metrics},
-        )
+        result = MetricResult(metrics=key_metrics)
+        return result
 
     @property
     def name(self) -> str:
@@ -132,18 +138,18 @@ class DstartCorrelationMetric(PianoMetric):
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
     ) -> MetricResult:
-        correlation, metrics = calculate_dstart_correlation(
+        dstart_metrics = calculate_dstart_correlation(
             target_df=target_df,
             generated_df=generated_df,
             n_bins=self.n_bins,
         )
-        return MetricResult(
-            value=correlation,
+        result = MetricResult(
+            metrics=dstart_metrics,
             metadata={
-                "detailed_metrics": metrics,
                 "config": self.config,
             },
         )
+        return result
 
     @property
     def name(self) -> str:
@@ -167,18 +173,18 @@ class DurationCorrelationMetric(PianoMetric):
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
     ) -> MetricResult:
-        correlation, metrics = calculate_duration_correlation(
+        duration_metrics = calculate_duration_correlation(
             target_df=target_df,
             generated_df=generated_df,
             n_bins=self.n_bins,
         )
-        return MetricResult(
-            value=correlation,
+        result = MetricResult(
+            mtrics=duration_metrics,
             metadata={
-                "detailed_metrics": metrics,
                 "config": self.config,
             },
         )
+        return result
 
     @property
     def name(self) -> str:
@@ -202,18 +208,18 @@ class VelocityCorrelationMetric(PianoMetric):
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
     ) -> MetricResult:
-        correlation, metrics = calculate_velocity_correlation(
+        velocity_metrics = calculate_velocity_metrics(
             target_df=target_df,
             generated_df=generated_df,
             use_weighted=self.use_weighted,
         )
-        return MetricResult(
-            value=correlation,
+        result = MetricResult(
+            mtrics=velocity_metrics,
             metadata={
-                "detailed_metrics": metrics,
                 "config": self.config,
             },
         )
+        return result
 
     @property
     def name(self) -> str:
@@ -237,18 +243,18 @@ class PitchCorrelationMetric(PianoMetric):
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
     ) -> MetricResult:
-        correlation, metrics = calculate_pitch_correlation(
+        pitch_metrics = calculate_pitch_correlation(
             target_df=target_df,
             generated_df=generated_df,
             use_weighted=self.use_weighted,
         )
-        return MetricResult(
-            value=correlation,
+        result = MetricResult(
+            metrics=pitch_metrics,
             metadata={
-                "detailed_metrics": metrics,
                 "config": self.config,
             },
         )
+        return result
 
     @property
     def name(self) -> str:
@@ -294,6 +300,7 @@ class MetricsRunner:
         return batch_results
 
     def register_metric(self, metric: PianoMetric):
+        # TODO This should be checked in the PianoMetric ABC implementation
         if not hasattr(metric, "name") or not metric.name:
             raise ValueError("Task class must have a 'name' attribute.")
 
