@@ -1,5 +1,3 @@
-from typing import Set, Tuple
-
 import pandas as pd
 
 
@@ -14,7 +12,7 @@ def calculate_f1(
     min_time_unit: float = 0.01,
     velocity_threshold: float = 30,
     use_pitch_class: bool = True,
-) -> Tuple[float, dict]:
+) -> dict:
     """
     Calculate F1 score between target and generated MIDI-like note sequences.
     Only calculates at note boundary events and weights by duration.
@@ -64,7 +62,7 @@ def calculate_f1(
     def get_active_notes(
         df: pd.DataFrame,
         time_point: float,
-    ) -> Set[tuple]:
+    ) -> set[tuple]:
         """
         Return set of (pitch, velocity) tuples active at given time point.
         If use_pitch_class is True, normalize pitches to 0-11.
@@ -73,8 +71,8 @@ def calculate_f1(
         return set(zip(df[mask]["pitch"], df[mask]["velocity"]))
 
     def find_matching_notes(
-        target_notes: Set[tuple],
-        generated_notes: Set[tuple],
+        target_notes: set[tuple],
+        generated_notes: set[tuple],
         velocity_threshold: float,
     ) -> int:
         """Count matching notes, ensuring each generated note matches at most one target note"""
@@ -129,4 +127,7 @@ def calculate_f1(
     f1_sum = sum(f1 * dur for f1, dur in zip(metrics["f1"], metrics["durations"]))
     weighted_f1 = f1_sum / total_duration if total_duration > 0 else 0.0
 
-    return weighted_f1, metrics
+    metrics["f1_sum"] = f1_sum
+    metrics["weighted_f1"] = weighted_f1
+
+    return metrics
