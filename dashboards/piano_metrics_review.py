@@ -56,6 +56,7 @@ def main():
     # This makes a copy of the DataFrame inside the piece
     generated_df = piece_split.target_df.copy()
 
+    # TODO Make a better UX for explorint generation mistakes
     # Apply some noise to the fake generated piece
     pitch_noise = np.random.randint(
         low=-1,
@@ -63,6 +64,18 @@ def main():
         size=generated_df.shape[0],
     )
     generated_df.pitch += pitch_noise
+    velocity_noise = np.random.randint(
+        low=-10,
+        high=10,
+        size=generated_df.shape[0],
+    )
+    generated_df.velocity += velocity_noise
+    start_noise = np.random.random(
+        size=generated_df.shape[0],
+    )
+    # Just want [0 - 0.15] range
+    generated_df.start += start_noise * 0.15
+
     generated_piece = ff.MidiPiece(
         df=generated_df,
     )
