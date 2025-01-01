@@ -274,7 +274,7 @@ def analyze_piece(
     while current_time < total_duration:
         key_name, key_probs = detect_key_from_notes(
             spiral=spiral,
-            notes=notes_df,
+            notes_df=notes_df,
             segment_start=current_time,
             segment_duration=segment_duration,
             use_weighted=use_weighted,

@@ -1,4 +1,3 @@
-from typing import Any
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import importlib.resources as pkg_resources
@@ -18,8 +17,9 @@ from piano_metrics.velocity_distribution import calculate_velocity_metrics
 class MetricResult:
     """Store metric calculation results with metadata"""
 
-    metrics: dict
-    metadata: dict[str, Any] = None
+    value: float
+    metadata: dict
+    metric_config: dict
 
 
 class PianoMetric(ABC):
@@ -73,10 +73,9 @@ class F1Metric(PianoMetric):
             use_pitch_class=self.use_pitch_class,
         )
         result = MetricResult(
-            metrics=f1_metrics,
-            metadata={
-                "config": self.config,
-            },
+            value=f1_metrics["weighted_f1"],
+            metadata=f1_metrics,
+            metric_config=self.config,
         )
         return result
 
@@ -86,9 +85,11 @@ class KeyCorrelationMetric(PianoMetric):
 
     def __init__(
         self,
+        name: str,
         segment_duration: float = 0.125,
         use_weighted: bool = True,
     ):
+        super().__init__(name=name)
         self.segment_duration = segment_duration
         self.use_weighted = use_weighted
 
@@ -110,12 +111,12 @@ class KeyCorrelationMetric(PianoMetric):
             segment_duration=self.segment_duration,
             use_weighted=self.use_weighted,
         )
-        result = MetricResult(metrics=key_metrics)
+        result = MetricResult(
+            value=key_metrics["taxicab_distance"],
+            metadata=key_metrics,
+            metric_config=self.config,
+        )
         return result
-
-    @property
-    def name(self) -> str:
-        return f"key_correlation{'_weighted' if self.use_weighted else '_unweighted'}"
 
 
 class DstartCorrelationMetric(PianoMetric):
@@ -261,6 +262,7 @@ class PitchCorrelationMetric(PianoMetric):
 class MetricFactory:
     _registry = {
         "F1Metric": F1Metric,
+        "KeyCorrelationMetric": KeyCorrelationMetric,
     }
 
     @classmethod

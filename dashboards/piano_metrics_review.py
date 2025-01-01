@@ -57,11 +57,15 @@ def main():
 
     metrics_manager = MetricsRunner.load_default()
 
-    metrics = metrics_manager.calculate_all(
+    metric_results = metrics_manager.calculate_all(
         target_df=target_piece.df,
         generated_df=generated_piece.df,
     )
-    st.write(metrics)
+    for metric_name, metric_result in metric_results.items():
+        st.metric(
+            label=metric_name,
+            value=round(metric_result.value, 2),
+        )
 
 
 if __name__ == "__main__":

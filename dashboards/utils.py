@@ -26,7 +26,7 @@ def select_part_dataset(
     selected_composer = st.selectbox(
         label="Select composer",
         options=composers,
-        index=3,
+        index=8,
         key=f"composer_{key}",
     )
 

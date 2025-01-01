@@ -104,13 +104,23 @@ def calculate_f1(
         # Convert duration to number of minimum time units
         duration_units = round(duration / min_time_unit)
 
-        target_notes = get_active_notes(target_df, current_time + min_time_unit / 2)
-        generated_notes = get_active_notes(generated_df, current_time + min_time_unit / 2)
+        target_notes = get_active_notes(
+            df=target_df,
+            time_point=current_time + min_time_unit / 2,
+        )
+        generated_notes = get_active_notes(
+            df=generated_df,
+            time_point=current_time + min_time_unit / 2,
+        )
 
         if len(target_notes) == 0 and len(generated_notes) == 0:
             continue
 
-        true_positives = find_matching_notes(target_notes, generated_notes, velocity_threshold)
+        true_positives = find_matching_notes(
+            target_notes=target_notes,
+            generated_notes=generated_notes,
+            velocity_threshold=velocity_threshold,
+        )
 
         precision = true_positives / len(generated_notes) if len(generated_notes) > 0 else 0
         recall = true_positives / len(target_notes) if len(target_notes) > 0 else 0
