@@ -1,0 +1,5 @@
+- name: F1Score
+  class: F1Metric
+  params:
+    use_pitch_class: true
+    min_time_unit: 0.02

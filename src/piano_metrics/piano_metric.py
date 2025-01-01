@@ -1,7 +1,9 @@
+from typing import Any
 from dataclasses import dataclass
-from typing import Any, Dict, List
 from abc import ABC, abstractmethod
+import importlib.resources as pkg_resources
 
+import yaml
 import pandas as pd
 
 from piano_metrics.f1_piano import calculate_f1
@@ -17,11 +19,14 @@ class MetricResult:
     """Store metric calculation results with metadata"""
 
     metrics: dict
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
 
 class PianoMetric(ABC):
     """Abstract base class for all piano performance metrics"""
+
+    def __init__(self, name: str):
+        self.name = name
 
     @abstractmethod
     def calculate(
@@ -32,23 +37,18 @@ class PianoMetric(ABC):
         """Calculate metric between target and generated performances"""
         pass
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        # TODO I think name should be given by the user, maybe with a smart default
-        """Return metric identifier"""
-        pass
-
 
 class F1Metric(PianoMetric):
     """Wrapper for F1 score calculation"""
 
     def __init__(
         self,
+        name: str,
         use_pitch_class: bool = False,
         velocity_threshold: float = 30,
         min_time_unit: float = 0.01,
     ):
+        super().__init__(name=name)
         self.use_pitch_class = use_pitch_class
         self.velocity_threshold = velocity_threshold
         self.min_time_unit = min_time_unit
@@ -79,10 +79,6 @@ class F1Metric(PianoMetric):
             },
         )
         return result
-
-    @property
-    def name(self) -> str:
-        return f"f1{'_pitch_class' if self.use_pitch_class else ''}"
 
 
 class KeyCorrelationMetric(PianoMetric):
@@ -262,42 +258,76 @@ class PitchCorrelationMetric(PianoMetric):
         return f"pitch_correlation{'_weighted' if self.use_weighted else '_unweighted'}"
 
 
+class MetricFactory:
+    _registry = {
+        "F1Metric": F1Metric,
+    }
+
+    @classmethod
+    def create_metric(
+        cls,
+        metric_name: str,
+        class_name: str,
+        params: dict,
+    ) -> PianoMetric:
+        if class_name not in cls._registry:
+            raise ValueError(f"Unknown metric class: {class_name}")
+        metric = cls._registry[class_name](
+            name=metric_name,
+            **params,
+        )
+        return metric
+
+
 class MetricsRunner:
     """Orchestrates the calculation of multiple metrics"""
 
-    def __init__(self, metrics: List[PianoMetric]):
-        self.metrics = {}
-        for metric in metrics:
-            self.register_metric(metric)
+    def __init__(self, metrics_config: list[dict]):
+        self.metrics_config = metrics_config
+        self.metrics = []
+
+        for metric_config in metrics_config:
+            print(metric_config)
+            piano_metric = MetricFactory.create_metric(
+                class_name=metric_config["class"],
+                metric_name=metric_config["name"],
+                params=metric_config["params"],
+            )
+            self.metrics.append(piano_metric)
+
+    @classmethod
+    def load_default(cls) -> "MetricsRunner":
+        with pkg_resources.open_text("configs", "metrics-default.yaml") as f:
+            metrics_config = yaml.safe_load(f)
+
+        this = cls(metrics_config)
+        return this
 
     def calculate_all(
         self,
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
-    ) -> Dict[str, MetricResult]:
+    ) -> dict[str, MetricResult]:
         """Calculate all metrics for a single example"""
         results = {}
-        for metric_name, metric in self.metrics.items():
-            try:
-                results[metric_name] = metric.calculate(
-                    target_df=target_df,
-                    generated_df=generated_df,
-                )
-            except Exception as e:
-                print(f"Error when calculating metric {metric_name}: {e}")
-                results[metric_name] = MetricResult(0.0, None)
+        for piano_metric in self.metrics:
+            results[piano_metric.name] = piano_metric.calculate(
+                target_df=target_df,
+                generated_df=generated_df,
+            )
         return results
 
     def calculate_batch(
         self,
-        targets: List[pd.DataFrame],
-        generations: List[pd.DataFrame],
-    ) -> Dict[str, List[MetricResult]]:
+        targets: list[pd.DataFrame],
+        generations: list[pd.DataFrame],
+    ) -> dict[str, list[MetricResult]]:
         """Calculate metrics for a batch of examples"""
-        batch_results = {metric_name: [] for metric_name in self.metrics}
+        batch_results = {piano_metric.name: [] for piano_metric in self.metrics}
 
         for target_df, generated_df in zip(targets, generations):
             results = self.calculate_all(target_df, generated_df)
+            # FIXME This whole method should probably be left for the user to implement (i.e. removed)
             for metric_name, result in results.items():
                 batch_results[metric_name].append(result)
 

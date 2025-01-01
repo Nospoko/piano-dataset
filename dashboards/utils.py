@@ -45,7 +45,7 @@ def select_part_dataset(
     return part_dataset
 
 
-def dataset_configuration(key: str = "0"):
+def dataset_configuration(key: str = "0") -> Dataset:
     col1, col2 = st.columns(2)
     with col1:
         dataset_path = st.text_input(
@@ -78,7 +78,7 @@ def dataset_configuration(key: str = "0"):
 def load_hf_dataset(
     dataset_path: str,
     dataset_split: str,
-):
+) -> Dataset:
     dataset = load_dataset(
         dataset_path,
         split=dataset_split,
