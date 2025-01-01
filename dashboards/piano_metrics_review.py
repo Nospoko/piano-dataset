@@ -61,11 +61,16 @@ def main():
         target_df=target_piece.df,
         generated_df=generated_piece.df,
     )
-    for metric_name, metric_result in metric_results.items():
-        st.metric(
-            label=metric_name,
-            value=round(metric_result.value, 2),
-        )
+    for metric_class, metric_result in metric_results.items():
+        st.write(f"## {metric_class}")
+
+        n_metrics = len(metric_result.metrics)
+        cols = st.columns(n_metrics)
+        for it, (metric_name, metric) in enumerate(metric_result.metrics.items()):
+            cols[it].metric(
+                label=metric_name,
+                value=round(metric, 2),
+            )
 
 
 if __name__ == "__main__":

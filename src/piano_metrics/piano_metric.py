@@ -17,7 +17,7 @@ from piano_metrics.velocity_distribution import calculate_velocity_metrics
 class MetricResult:
     """Store metric calculation results with metadata"""
 
-    value: float
+    metrics: dict[str, float]
     metadata: dict
     metric_config: dict
 
@@ -72,8 +72,13 @@ class F1Metric(PianoMetric):
             velocity_threshold=self.velocity_threshold,
             use_pitch_class=self.use_pitch_class,
         )
+        result_metrics = {
+            "weighted_f1": f1_metrics["weighted_f1"],
+            "weighted_recall": f1_metrics["weighted_recall"],
+            "weighted_precision": f1_metrics["weighted_precision"],
+        }
         result = MetricResult(
-            value=f1_metrics["weighted_f1"],
+            metrics=result_metrics,
             metadata=f1_metrics,
             metric_config=self.config,
         )
@@ -111,8 +116,13 @@ class KeyCorrelationMetric(PianoMetric):
             segment_duration=self.segment_duration,
             use_weighted=self.use_weighted,
         )
+
+        result_metrics = {
+            "taxicab_distance": key_metrics["taxicab_distance"],
+            "correlation": key_metrics["correlation"],
+        }
         result = MetricResult(
-            value=key_metrics["taxicab_distance"],
+            metrics=result_metrics,
             metadata=key_metrics,
             metric_config=self.config,
         )

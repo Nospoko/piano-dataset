@@ -14,6 +14,8 @@ def calculate_f1(
     use_pitch_class: bool = True,
 ) -> dict:
     """
+    TODO: This documentation doesn't explain what's up with the *get_active_notes* logic.
+
     Calculate F1 score between target and generated MIDI-like note sequences.
     Only calculates at note boundary events and weights by duration.
 
@@ -59,6 +61,7 @@ def calculate_f1(
         "durations": [],  # store duration of each segment in minimum time units
     }
 
+    # FIXME I don't see a good reason for these methods to be defined inline
     def get_active_notes(
         df: pd.DataFrame,
         time_point: float,
@@ -101,9 +104,6 @@ def calculate_f1(
         next_time = time_points[i + 1]
         duration = next_time - current_time
 
-        # Convert duration to number of minimum time units
-        duration_units = round(duration / min_time_unit)
-
         target_notes = get_active_notes(
             df=target_df,
             time_point=current_time + min_time_unit / 2,
@@ -122,9 +122,13 @@ def calculate_f1(
             velocity_threshold=velocity_threshold,
         )
 
+        # FIXME Something is very wrong with precission or recall definition
         precision = true_positives / len(generated_notes) if len(generated_notes) > 0 else 0
         recall = true_positives / len(target_notes) if len(target_notes) > 0 else 0
         f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+        # Convert duration to number of minimum time units
+        duration_units = round(duration / min_time_unit)
 
         metrics["time_points"].append(current_time)
         metrics["precision"].append(precision)
@@ -139,5 +143,17 @@ def calculate_f1(
 
     metrics["f1_sum"] = f1_sum
     metrics["weighted_f1"] = weighted_f1
+
+    precision_sum = sum(x * dur for x, dur in zip(metrics["precision"], metrics["durations"]))
+    weighted_precision = precision_sum / total_duration if total_duration > 0 else 0.0
+
+    metrics["precision_sum"] = precision_sum
+    metrics["weighted_precision"] = weighted_precision
+
+    recall_sum = sum(x * dur for x, dur in zip(metrics["recall"], metrics["durations"]))
+    weighted_recall = recall_sum / total_duration if total_duration > 0 else 0.0
+
+    metrics["recall_sum"] = recall_sum
+    metrics["weighted_recall"] = weighted_recall
 
     return metrics
