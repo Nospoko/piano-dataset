@@ -62,12 +62,11 @@ def main():
         generated_df=generated_piece.df,
     )
     for metric_class, metric_result in metric_results.items():
-        st.write(f"## {metric_class}")
-
         n_metrics = len(metric_result.metrics)
-        cols = st.columns(n_metrics)
+        cols = st.columns(n_metrics + 1)
+        cols[0].write(f"**{metric_class}:**")
         for it, (metric_name, metric) in enumerate(metric_result.metrics.items()):
-            cols[it].metric(
+            cols[it + 1].metric(
                 label=metric_name,
                 value=round(metric, 2),
             )

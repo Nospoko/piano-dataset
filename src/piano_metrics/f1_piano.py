@@ -122,7 +122,7 @@ def calculate_f1(
             velocity_threshold=velocity_threshold,
         )
 
-        # FIXME Something is very wrong with precission or recall definition
+        # FIXME Something is very wrong with precission and/or recall definition
         precision = true_positives / len(generated_notes) if len(generated_notes) > 0 else 0
         recall = true_positives / len(target_notes) if len(target_notes) > 0 else 0
         f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0

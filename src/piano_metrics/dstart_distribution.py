@@ -72,9 +72,11 @@ def calculate_dstart_metrics(
     generated_dist = calculate_dstart_distribution(generated_df, n_bins)
 
     correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
+    taxicab_distance = np.sum(np.abs(target_dist - generated_dist))
 
     metrics = {
         "correlation": correlation,
+        "taxicab_distance": taxicab_distance,
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
         "target_dstarts": np.count_nonzero(target_dist),

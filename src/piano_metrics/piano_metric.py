@@ -132,7 +132,8 @@ class KeyCorrelationMetric(PianoMetric):
 class DstartCorrelationMetric(PianoMetric):
     """Wrapper for dstart (time between consecutive notes) correlation calculation"""
 
-    def __init__(self, n_bins: int = 50):
+    def __init__(self, name: str, n_bins: int = 50):
+        super().__init__(name=name)
         self.n_bins = n_bins
 
     @property
@@ -151,23 +152,23 @@ class DstartCorrelationMetric(PianoMetric):
             generated_df=generated_df,
             n_bins=self.n_bins,
         )
+        result_metrics = {
+            "taxicab_distance": dstart_metrics["taxicab_distance"],
+            "correlation": dstart_metrics["correlation"],
+        }
         result = MetricResult(
-            metrics=dstart_metrics,
-            metadata={
-                "config": self.config,
-            },
+            metrics=result_metrics,
+            metadata=dstart_metrics,
+            metric_config=self.config,
         )
         return result
-
-    @property
-    def name(self) -> str:
-        return "dstart_correlation"
 
 
 class DurationCorrelationMetric(PianoMetric):
     """Wrapper for note duration correlation calculation"""
 
-    def __init__(self, n_bins: int = 50):
+    def __init__(self, name: str, n_bins: int = 50):
+        super().__init__(name=name)
         self.n_bins = n_bins
 
     @property
@@ -186,23 +187,23 @@ class DurationCorrelationMetric(PianoMetric):
             generated_df=generated_df,
             n_bins=self.n_bins,
         )
+        result_metrics = {
+            "taxicab_distance": duration_metrics["taxicab_distance"],
+            "correlation": duration_metrics["correlation"],
+        }
         result = MetricResult(
-            mtrics=duration_metrics,
-            metadata={
-                "config": self.config,
-            },
+            metrics=result_metrics,
+            metadata=duration_metrics,
+            metric_config=self.config,
         )
         return result
-
-    @property
-    def name(self) -> str:
-        return "duration_correlation"
 
 
 class VelocityCorrelationMetric(PianoMetric):
     """Wrapper for velocity distribution correlation calculation"""
 
-    def __init__(self, use_weighted: bool = True):
+    def __init__(self, name: str, use_weighted: bool = True):
+        super().__init__(name=name)
         self.use_weighted = use_weighted
 
     @property
@@ -221,23 +222,25 @@ class VelocityCorrelationMetric(PianoMetric):
             generated_df=generated_df,
             use_weighted=self.use_weighted,
         )
+
+        result_metrics = {
+            "taxicab_distance": velocity_metrics["taxicab_distance"],
+            "correlation": velocity_metrics["correlation"],
+        }
+
         result = MetricResult(
-            mtrics=velocity_metrics,
-            metadata={
-                "config": self.config,
-            },
+            metrics=result_metrics,
+            metadata=velocity_metrics,
+            metric_config=self.config,
         )
         return result
-
-    @property
-    def name(self) -> str:
-        return f"velocity_correlation{'_weighted' if self.use_weighted else '_unweighted'}"
 
 
 class PitchCorrelationMetric(PianoMetric):
     """Wrapper for pitch distribution correlation calculation"""
 
-    def __init__(self, use_weighted: bool = True):
+    def __init__(self, name: str, use_weighted: bool = True):
+        super().__init__(name=name)
         self.use_weighted = use_weighted
 
     @property
@@ -256,23 +259,28 @@ class PitchCorrelationMetric(PianoMetric):
             generated_df=generated_df,
             use_weighted=self.use_weighted,
         )
+
+        result_metrics = {
+            "taxicab_distance": pitch_metrics["taxicab_distance"],
+            "correlation": pitch_metrics["correlation"],
+        }
+
         result = MetricResult(
-            metrics=pitch_metrics,
-            metadata={
-                "config": self.config,
-            },
+            metrics=result_metrics,
+            metadata=pitch_metrics,
+            metric_config=self.config,
         )
         return result
-
-    @property
-    def name(self) -> str:
-        return f"pitch_correlation{'_weighted' if self.use_weighted else '_unweighted'}"
 
 
 class MetricFactory:
     _registry = {
         "F1Metric": F1Metric,
         "KeyCorrelationMetric": KeyCorrelationMetric,
+        "PitchCorrelationMetric": PitchCorrelationMetric,
+        "DstartCorrelationMetric": DstartCorrelationMetric,
+        "DurationCorrelationMetric": DurationCorrelationMetric,
+        "VelocityCorrelationMetric": VelocityCorrelationMetric,
     }
 
     @classmethod
@@ -303,7 +311,7 @@ class MetricsRunner:
             piano_metric = MetricFactory.create_metric(
                 class_name=metric_config["class"],
                 metric_name=metric_config["name"],
-                params=metric_config["params"],
+                params=metric_config.get("params", {}),
             )
             self.metrics.append(piano_metric)
 

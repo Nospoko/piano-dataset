@@ -58,9 +58,11 @@ def calculate_pitch_metrics(
     generated_dist = calculate_pitch_weights(generated_df, use_weighted)
 
     correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
+    taxicab_distance = np.sum(np.abs(target_dist - generated_dist))
 
     metrics = {
         "correlation": correlation,
+        "taxicab_distance": taxicab_distance,
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
         "target_active_pitches": np.count_nonzero(target_dist),
