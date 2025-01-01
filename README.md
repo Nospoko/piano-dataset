@@ -27,7 +27,7 @@ PianoTasks.list_tasks()
 #     ...
 # ]
 
-piano_task = PianoTasks.get_task(task_name='extreme_quartile_prediction')
+piano_task = PianoTasks.get_task(task_name='top_line_prediction')
 target_prompt = piano_task.prompt_target_split(notes_df=piece.df)
 
 target_prompt
@@ -44,6 +44,12 @@ target_prompt
 
 ```sh
 pip install -e .[dev]
+```
+
+To run internal dashboards during development:
+
+```sh
+PYTHONPATH=. streamlit run src/piano_dataset/dashboards/task_review.py
 ```
 
 ## Code style
