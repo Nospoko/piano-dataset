@@ -68,10 +68,20 @@ def main():
     col1, col2 = st.columns(2)
     with col1:
         dataset_1 = dataset_configuration(key="0")
-        record_id_1 = st.number_input(label=f"Record number [0-{len(dataset_1)}]", value=0, key="record_id_0")
+        record_id_1 = st.number_input(
+            label=f"Record number dataset 1 [0-{len(dataset_1) - 1}]",
+            value=0,
+            min_value=0,
+            max_value=len(dataset_1) - 1,
+        )
     with col2:
         dataset_2 = dataset_configuration(key="1")
-        record_id_2 = st.number_input(label=f"Record number [0-{len(dataset_2)}]", value=0, key="record_id_1")
+        record_id_2 = st.number_input(
+            label=f"Record number dataset 2 [0-{len(dataset_2) - 1}]",
+            value=0,
+            min_value=0,
+            max_value=len(dataset_2) - 1,
+        )
 
     if len(dataset_1) == 0 or len(dataset_2) == 0:
         st.error("Could not find selected pieces in dataset")

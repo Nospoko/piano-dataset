@@ -53,11 +53,11 @@ def calculate_velocity_metrics(
         Additional metrics including velocity distributions.
     """
     target_dist = calculate_velocity_weights(
-        df=target_df,
+        notes_df=target_df,
         use_weighted=use_weighted,
     )
     generated_dist = calculate_velocity_weights(
-        df=generated_df,
+        notes_df=generated_df,
         use_weighted=use_weighted,
     )
 

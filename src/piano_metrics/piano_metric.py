@@ -35,6 +35,7 @@ class PianoMetric(ABC):
     @property
     @abstractmethod
     def name(self) -> str:
+        # TODO I think name should be given by the user, maybe with a smart default
         """Return metric identifier"""
         pass
 
@@ -278,7 +279,10 @@ class MetricsRunner:
         results = {}
         for metric_name, metric in self.metrics.items():
             try:
-                results[metric_name] = metric.calculate(target_df, generated_df)
+                results[metric_name] = metric.calculate(
+                    target_df=target_df,
+                    generated_df=generated_df,
+                )
             except Exception as e:
                 print(f"Error when calculating metric {metric_name}: {e}")
                 results[metric_name] = MetricResult(0.0, None)

@@ -21,7 +21,10 @@ def main():
     st.set_page_config(layout="wide")
 
     st.sidebar.title("MIDI Analysis Dashboards")
-    selected_dashboard = st.sidebar.selectbox("Select Analysis Type", options=list(DASHBOARDS.keys()))
+    selected_dashboard = st.sidebar.selectbox(
+        label="Select Analysis Type",
+        options=list(DASHBOARDS.keys()),
+    )
 
     DASHBOARDS[selected_dashboard]()
 
