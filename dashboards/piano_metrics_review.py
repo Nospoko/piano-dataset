@@ -70,18 +70,21 @@ def main():
 
     cols = st.columns(3)
     with cols[0]:
+        st.write("Input")
         streamlit_pianoroll.from_fortepyan(
             piece=source_piece,
             secondary_piece=target_piece,
         )
 
     with cols[1]:
+        st.write("Output")
         streamlit_pianoroll.from_fortepyan(
             piece=source_piece,
             secondary_piece=generated_piece,
         )
 
     with cols[2]:
+        st.write("Target vs Generation")
         streamlit_pianoroll.from_fortepyan(
             piece=target_piece,
             secondary_piece=generated_piece,
@@ -105,11 +108,10 @@ def main():
 
 
 def simulate_generation_mistakes(target_df: pd.DataFrame) -> pd.DataFrame:
-    # TODO Make a better UX for explorint generation mistakes
-    # Apply some noise to the fake generated piece
     generated_df = target_df.copy()
     cols = st.columns(3)
 
+    # Modify the pitch value, so it's different than target
     add_pitch_noise = cols[0].checkbox(
         label="add noise to pitch",
         value=True,
@@ -126,6 +128,8 @@ def simulate_generation_mistakes(target_df: pd.DataFrame) -> pd.DataFrame:
         n_notes = generated_df.shape[0] * pitch_noise_percentage / 100
         n_notes = int(n_notes)
         idxs = generated_df.sample(n_notes).index
+        # Pitch noise can only change pitches to higher values
+        # should be easy to add a random direction change if this becomes an issue
         pitch_noise = np.random.randint(
             low=1,
             high=12,
@@ -172,11 +176,14 @@ def simulate_generation_mistakes(target_df: pd.DataFrame) -> pd.DataFrame:
         n_notes = generated_df.shape[0] * start_noise_percentage / 100
         n_notes = int(n_notes)
         idxs = generated_df.sample(n_notes).index
-        start_noise = np.random.random(
-            size=n_notes,
+        start_noise = (
+            np.random.random(
+                size=n_notes,
+            )
+            - 0.5
         )
-        # Just want [0 - 0.15] range
-        generated_df.loc[idxs, "start"] += start_noise * 0.15
+        # Just want [-0.15 - 0.15] range
+        generated_df.loc[idxs, "start"] += start_noise * 0.3
 
     return generated_df
 

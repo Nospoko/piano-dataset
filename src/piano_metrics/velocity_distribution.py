@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from piano_metrics.distribution_metrics import calculate_distribution_metrics
+
 
 def calculate_velocity_weights(
     notes_df: pd.DataFrame,
@@ -61,12 +63,12 @@ def calculate_velocity_metrics(
         use_weighted=use_weighted,
     )
 
-    correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
-    taxicab_distance = np.sum(np.abs(target_dist - generated_dist))
+    distribution_metrics = calculate_distribution_metrics(
+        target_dist=target_dist,
+        generated_dist=generated_dist,
+    )
 
-    metrics = {
-        "correlation": correlation,
-        "taxicab_distance": taxicab_distance,
+    metadata = {
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
         "target_velocities": np.count_nonzero(target_dist),
@@ -74,4 +76,9 @@ def calculate_velocity_metrics(
         "velocity_range": list(range(0, 127)),  # MIDI velocity numbers
     }
 
-    return metrics
+    result = {
+        "distribution_metrics": distribution_metrics,
+        "metadata": metadata,
+    }
+
+    return result

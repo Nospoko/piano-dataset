@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from piano_metrics.distribution_metrics import calculate_distribution_metrics
+
 
 def calculate_dstart_distribution(
     df: pd.DataFrame,
@@ -71,16 +73,21 @@ def calculate_dstart_metrics(
     target_dist = calculate_dstart_distribution(target_df, n_bins)
     generated_dist = calculate_dstart_distribution(generated_df, n_bins)
 
-    correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
-    taxicab_distance = np.sum(np.abs(target_dist - generated_dist))
+    distribution_metrics = calculate_distribution_metrics(
+        target_dist=target_dist,
+        generated_dist=generated_dist,
+    )
 
-    metrics = {
-        "correlation": correlation,
-        "taxicab_distance": taxicab_distance,
+    metadata = {
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
         "target_dstarts": np.count_nonzero(target_dist),
         "generated_dstarts": np.count_nonzero(generated_dist),
     }
 
-    return metrics
+    result = {
+        "distribution_metrics": distribution_metrics,
+        "metadata": metadata,
+    }
+
+    return result

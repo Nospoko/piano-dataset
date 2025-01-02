@@ -85,7 +85,7 @@ class F1Metric(PianoMetric):
         return result
 
 
-class KeyCorrelationMetric(PianoMetric):
+class KeyDistributionMetric(PianoMetric):
     """Wrapper for key correlation calculation"""
 
     def __init__(
@@ -117,19 +117,15 @@ class KeyCorrelationMetric(PianoMetric):
             use_weighted=self.use_weighted,
         )
 
-        result_metrics = {
-            "taxicab_distance": key_metrics["taxicab_distance"],
-            "correlation": key_metrics["correlation"],
-        }
         result = MetricResult(
-            metrics=result_metrics,
-            metadata=key_metrics,
+            metrics=key_metrics["distribution_metrics"],
+            metadata=key_metrics["metadata"],
             metric_config=self.config,
         )
         return result
 
 
-class DstartCorrelationMetric(PianoMetric):
+class DStartDistributionMetric(PianoMetric):
     """Wrapper for dstart (time between consecutive notes) correlation calculation"""
 
     def __init__(self, name: str, n_bins: int = 50):
@@ -152,19 +148,15 @@ class DstartCorrelationMetric(PianoMetric):
             generated_df=generated_df,
             n_bins=self.n_bins,
         )
-        result_metrics = {
-            "taxicab_distance": dstart_metrics["taxicab_distance"],
-            "correlation": dstart_metrics["correlation"],
-        }
         result = MetricResult(
-            metrics=result_metrics,
-            metadata=dstart_metrics,
+            metrics=dstart_metrics["distribution_metrics"],
+            metadata=dstart_metrics["metadata"],
             metric_config=self.config,
         )
         return result
 
 
-class DurationCorrelationMetric(PianoMetric):
+class DurationDistributionMetric(PianoMetric):
     """Wrapper for note duration correlation calculation"""
 
     def __init__(self, name: str, n_bins: int = 50):
@@ -187,19 +179,15 @@ class DurationCorrelationMetric(PianoMetric):
             generated_df=generated_df,
             n_bins=self.n_bins,
         )
-        result_metrics = {
-            "taxicab_distance": duration_metrics["taxicab_distance"],
-            "correlation": duration_metrics["correlation"],
-        }
         result = MetricResult(
-            metrics=result_metrics,
-            metadata=duration_metrics,
+            metrics=duration_metrics["distribution_metrics"],
+            metadata=duration_metrics["metadata"],
             metric_config=self.config,
         )
         return result
 
 
-class VelocityCorrelationMetric(PianoMetric):
+class VelocityDistributionMetric(PianoMetric):
     """Wrapper for velocity distribution correlation calculation"""
 
     def __init__(self, name: str, use_weighted: bool = True):
@@ -223,20 +211,15 @@ class VelocityCorrelationMetric(PianoMetric):
             use_weighted=self.use_weighted,
         )
 
-        result_metrics = {
-            "taxicab_distance": velocity_metrics["taxicab_distance"],
-            "correlation": velocity_metrics["correlation"],
-        }
-
         result = MetricResult(
-            metrics=result_metrics,
-            metadata=velocity_metrics,
+            metrics=velocity_metrics["distribution_metrics"],
+            metadata=velocity_metrics["metadata"],
             metric_config=self.config,
         )
         return result
 
 
-class PitchCorrelationMetric(PianoMetric):
+class PitchDistributionMetric(PianoMetric):
     """Wrapper for pitch distribution correlation calculation"""
 
     def __init__(self, name: str, use_weighted: bool = True):
@@ -260,14 +243,9 @@ class PitchCorrelationMetric(PianoMetric):
             use_weighted=self.use_weighted,
         )
 
-        result_metrics = {
-            "taxicab_distance": pitch_metrics["taxicab_distance"],
-            "correlation": pitch_metrics["correlation"],
-        }
-
         result = MetricResult(
-            metrics=result_metrics,
-            metadata=pitch_metrics,
+            metrics=pitch_metrics["distribution_metrics"],
+            metadata=pitch_metrics["metadata"],
             metric_config=self.config,
         )
         return result
@@ -276,11 +254,11 @@ class PitchCorrelationMetric(PianoMetric):
 class MetricFactory:
     _registry = {
         "F1Metric": F1Metric,
-        "KeyCorrelationMetric": KeyCorrelationMetric,
-        "PitchCorrelationMetric": PitchCorrelationMetric,
-        "DstartCorrelationMetric": DstartCorrelationMetric,
-        "DurationCorrelationMetric": DurationCorrelationMetric,
-        "VelocityCorrelationMetric": VelocityCorrelationMetric,
+        "KeyDistributionMetric": KeyDistributionMetric,
+        "PitchDistributionMetric": PitchDistributionMetric,
+        "DStartDistributionMetric": DStartDistributionMetric,
+        "DurationDistributionMetric": DurationDistributionMetric,
+        "VelocityDistributionMetric": VelocityDistributionMetric,
     }
 
     @classmethod

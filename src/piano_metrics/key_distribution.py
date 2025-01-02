@@ -1,9 +1,11 @@
 import math
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union, Optional
+from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
+
+from piano_metrics.distribution_metrics import calculate_distribution_metrics
 
 
 @dataclass
@@ -63,7 +65,7 @@ class SpiralArray:
         # Map of key indices to key names
         self.key_names = self._generate_key_names()
 
-    def _generate_pitch_spiral(self) -> Dict[int, SpiralPoint]:
+    def _generate_pitch_spiral(self) -> dict[int, SpiralPoint]:
         """Generate two complete spiral arrays (24 points total)"""
         pitch_points = {}
         fifths_steps = {
@@ -104,7 +106,7 @@ class SpiralArray:
         chord_point = self.pitch_classes[root % 12] * 0.5 + third * 0.3 + fifth * 0.2
         return chord_point
 
-    def _generate_major_keys(self) -> List[SpiralPoint]:
+    def _generate_major_keys(self) -> list[SpiralPoint]:
         major_keys = []
         for root in range(12):
             tonic = self._create_major_chord(root)
@@ -113,7 +115,7 @@ class SpiralArray:
             major_keys.append(tonic * 0.6 + subdominant * 0.2 + dominant * 0.2)
         return major_keys
 
-    def _generate_minor_keys(self) -> List[SpiralPoint]:
+    def _generate_minor_keys(self) -> list[SpiralPoint]:
         minor_keys = []
         for root in range(12):
             tonic = self._create_minor_chord(root)  # Tonic
@@ -124,7 +126,7 @@ class SpiralArray:
             minor_keys.append(tonic * 0.5 + subdominant * 0.25 + dominant * 0.25)
         return minor_keys
 
-    def _generate_key_names(self) -> Dict[int, str]:
+    def _generate_key_names(self) -> dict[int, str]:
         """Generate mapping of key indices to key names"""
         pitch_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         key_names = {}
@@ -173,7 +175,7 @@ class SpiralArray:
         self,
         center: SpiralPoint,
         return_distribution: bool = False,
-    ) -> Union[int, Tuple[int, np.ndarray]]:
+    ) -> Union[int, tuple[int, np.ndarray]]:
         major_distances = [center.distance(k) for k in self.major_keys]
         minor_distances = [center.distance(k) for k in self.minor_keys]
         all_distances = major_distances + minor_distances
@@ -195,7 +197,7 @@ def detect_key_from_notes(
     segment_start: float = 0.0,
     segment_duration: Optional[float] = None,
     use_weighted: bool = True,
-) -> Tuple[str, np.ndarray]:
+) -> tuple[str, np.ndarray]:
     """
     Detect the key from a segment of notes using the Spiral Array model.
 
@@ -257,7 +259,7 @@ def analyze_piece(
     notes_df: pd.DataFrame,
     segment_duration: float = 0.125,
     use_weighted: bool = True,
-) -> Dict:
+) -> dict:
     if len(notes_df) == 0:
         return {
             "overall_distribution": np.zeros(24),
@@ -340,12 +342,13 @@ def calculate_key_metrics(
     # Calculate correlation coefficient
     target_dist = target_analysis["overall_distribution"]
     generated_dist = generated_analysis["overall_distribution"]
-    correlation = np.corrcoef(target_dist, generated_dist)[0, 1]
-    taxicab_distance = np.sum(np.abs(target_dist - generated_dist))
 
-    metrics = {
-        "correlation": correlation,
-        "taxicab_distance": taxicab_distance,
+    distribution_metrics = calculate_distribution_metrics(
+        target_dist=target_dist,
+        generated_dist=generated_dist,
+    )
+
+    metadata = {
         "target_distribution": target_dist,
         "generated_distribution": generated_dist,
         "num_segments": len(target_analysis["segment_keys"]),
@@ -355,4 +358,9 @@ def calculate_key_metrics(
         "generated_top_keys": generated_analysis["top_keys"],
     }
 
-    return metrics
+    result = {
+        "distribution_metrics": distribution_metrics,
+        "metadata": metadata,
+    }
+
+    return result
