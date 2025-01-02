@@ -1,6 +1,6 @@
 from enum import Enum
-from typing import NamedTuple
 from abc import ABC, abstractmethod
+from typing import Union, NamedTuple
 
 import pandas as pd
 
@@ -26,7 +26,6 @@ class TargetPromptSplit(NamedTuple):
     target_df: pd.DataFrame
 
     def __rich_repr__(self):
-        yield "TargetPromptSplit"
         yield "source_notes", self.source_df.shape[0]
         yield "target_notes", self.target_df.shape[0]
         yield "source_token", self.source_token
@@ -48,3 +47,33 @@ class PianoTask(ABC):
         yield "type", self.type.name
         yield "source_token", self.source_token
         yield "target_token", self.target_token
+
+
+class ParametricTargetPromptSplit(NamedTuple):
+    prefix_tokens: list[str]
+    source_df: pd.DataFrame
+    target_df: pd.DataFrame
+
+    def __rich_repr__(self):
+        yield "source_notes", self.source_df.shape[0]
+        yield "target_notes", self.target_df.shape[0]
+        yield "prefix_tokens", self.prefix_tokens
+
+
+class ParametricPianoTask(ABC):
+    name: str
+    task_token: str
+    type: PromptTaskType
+
+    @abstractmethod
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+        pass
+
+    def task_parameter_token(self, parameter: Union[int, str]) -> str:
+        token = f"<PARAMETER_{parameter}>"
+        return token
+
+    def __rich_repr__(self):
+        yield "name", self.name
+        yield "type", self.type.name
+        yield "task_token", self.task_token

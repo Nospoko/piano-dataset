@@ -1,6 +1,12 @@
 import pandas as pd
 
-from piano_dataset.piano_task import PianoTask, PromptTaskType, TargetPromptSplit
+from piano_dataset.piano_task import (
+    PianoTask,
+    PromptTaskType,
+    TargetPromptSplit,
+    ParametricPianoTask,
+    ParametricTargetPromptSplit,
+)
 
 
 class PianoTaskManager:
@@ -273,5 +279,59 @@ class LowLinePrediction(PianoTask):
             target_df=target_df,
             source_token=self.source_token,
             target_token=self.target_token,
+        )
+        return target_split
+
+
+class ParametricTopLineMasking(ParametricPianoTask):
+    name = "parametric_top_line_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<PARAMETRIC_TOP_LINE>"
+
+    def __init__(self, n_repetitions: int = 1):
+        self.n_repetitions = n_repetitions
+
+    def _find_top_line_notes(self, notes_df: pd.DataFrame) -> list[int]:
+        start_time = notes_df.start.min()
+        end_time = notes_df.start.max()
+
+        # TODO Move to config
+        window_size = 0.2
+        top_line_idxs = []
+        while start_time <= end_time:
+            # Get notes that were ringing during this time interval
+            ids = (notes_df["start"] <= start_time + window_size) & (notes_df["end"] > start_time)
+            if ids.any():
+                idx = notes_df[ids].pitch.idxmax()
+                top_line_idxs.append(idx)
+
+            start_time += window_size
+
+        return top_line_idxs
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+        source_df = notes_df.copy()
+        target_notes = []
+        for it in range(self.n_repetitions):
+            top_line_idxs = self._find_top_line_notes(source_df)
+
+            ids = source_df.index.isin(top_line_idxs)
+
+            target_df = source_df[ids]
+            target_notes.append(target_df)
+
+            source_df = source_df[~ids]
+
+        target_df = pd.concat(target_notes, axis=1)
+
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.n_repetitions),
+        ]
+
+        target_split = ParametricTargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=prefix_tokens,
         )
         return target_split
