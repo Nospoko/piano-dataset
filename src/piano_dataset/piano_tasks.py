@@ -1,3 +1,6 @@
+import importlib.resources as pkg_resources
+
+import yaml
 import pandas as pd
 
 from piano_dataset.piano_task import (
@@ -291,6 +294,12 @@ class ParametricTopLineMasking(ParametricPianoTask):
     def __init__(self, n_repetitions: int = 1):
         self.n_repetitions = n_repetitions
 
+    @property
+    def task_name(self) -> str:
+        # *x* reads *times*
+        name = f"{self.name}-x{self.n_repetitions}"
+        return name
+
     def _find_top_line_notes(self, notes_df: pd.DataFrame) -> list[int]:
         start_time = notes_df.start.min()
         end_time = notes_df.start.max()
@@ -309,6 +318,14 @@ class ParametricTopLineMasking(ParametricPianoTask):
 
         return top_line_idxs
 
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.n_repetitions),
+        ]
+        return prefix_tokens
+
     def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
         source_df = notes_df.copy()
         target_notes = []
@@ -322,16 +339,94 @@ class ParametricTopLineMasking(ParametricPianoTask):
 
             source_df = source_df[~ids]
 
-        target_df = pd.concat(target_notes, axis=1)
-
-        prefix_tokens = [
-            self.task_token,
-            self.task_parameter_token(self.n_repetitions),
-        ]
+        target_df = pd.concat(target_notes, axis=0)
 
         target_split = ParametricTargetPromptSplit(
             source_df=source_df,
             target_df=target_df,
-            prefix_tokens=prefix_tokens,
+            prefix_tokens=self.prefix_tokens,
         )
         return target_split
+
+
+class ParametricHighNotesMasking(ParametricPianoTask):
+    name = "parametric_high_notes_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<PARAMETRIC_HIGH_NOTES>"
+
+    def __init__(self, n_notes: int = 5):
+        self.n_notes = n_notes
+
+    @property
+    def task_name(self) -> str:
+        # *x* reads *times*
+        name = f"{self.name}-x{self.n_notes}"
+        return name
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.n_notes),
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+        target_df = notes_df.nlargest(self.n_notes, "pitch")
+
+        ids = notes_df.index.isin(target_df.index)
+        source_df = notes_df[~ids].reset_index(drop=True)
+
+        target_split = ParametricTargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
+class ParametricTaskManager:
+    _task_registry = {
+        "ParametricTopLineMasking": ParametricTopLineMasking,
+        "ParametricHighNotesMasking": ParametricHighNotesMasking,
+    }
+
+    def __init__(self, tasks_config: dict):
+        self.tasks_config = tasks_config
+        self.tasks = {}
+
+        for task_config in tasks_config:
+            piano_task = self.create_task(
+                class_name=task_config["class"],
+                params=task_config.get("params", {}),
+            )
+            self.tasks[piano_task.task_name] = piano_task
+
+    def list_tasks(self) -> list[str]:
+        task_names = [task_name for task_name in self.tasks]
+        return task_names
+
+    def get_task(self, task_name) -> ParametricPianoTask:
+        task = self.tasks[task_name]
+        return task
+
+    def create_task(
+        self,
+        class_name: str,
+        params: dict,
+    ) -> ParametricPianoTask:
+        if class_name not in self._task_registry:
+            raise ValueError(f"Unknown task class: {class_name}")
+
+        piano_task = self._task_registry[class_name](
+            **params,
+        )
+        return piano_task
+
+    @classmethod
+    def load_default(cls) -> "ParametricTaskManager":
+        with pkg_resources.open_text("configs", "tasks-default.yaml") as f:
+            tasks_config = yaml.safe_load(f)
+
+        this = cls(tasks_config)
+        return this

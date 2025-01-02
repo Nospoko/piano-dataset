@@ -69,11 +69,21 @@ class ParametricPianoTask(ABC):
     def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
         pass
 
+    @property
+    @abstractmethod
+    def task_name(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def prefix_tokens(self) -> list[str]:
+        pass
+
     def task_parameter_token(self, parameter: Union[int, str]) -> str:
         token = f"<PARAMETER_{parameter}>"
         return token
 
     def __rich_repr__(self):
-        yield "name", self.name
+        yield "taks_name", self.task_name
         yield "type", self.type.name
-        yield "task_token", self.task_token
+        yield "prefix_tokens", self.prefix_tokens

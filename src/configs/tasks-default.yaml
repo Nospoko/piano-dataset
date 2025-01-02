@@ -1,0 +1,27 @@
+- class: ParametricTopLineMasking
+  params:
+    n_repetitions: 1
+
+- class: ParametricTopLineMasking
+  params:
+    n_repetitions: 2
+
+- class: ParametricTopLineMasking
+  params:
+    n_repetitions: 3
+
+- class: ParametricHighNotesMasking
+  params:
+    n_notes: 5
+
+- class: ParametricHighNotesMasking
+  params:
+    n_notes: 10
+
+- class: ParametricHighNotesMasking
+  params:
+    n_notes: 20
+
+- class: ParametricHighNotesMasking
+  params:
+    n_notes: 30

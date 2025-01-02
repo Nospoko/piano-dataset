@@ -330,14 +330,5 @@ class MetricsRunner:
 
         return batch_results
 
-    def register_metric(self, metric: PianoMetric):
-        # TODO This should be checked in the PianoMetric ABC implementation
-        if not hasattr(metric, "name") or not metric.name:
-            raise ValueError("Task class must have a 'name' attribute.")
-
-        if metric.name in self.metrics:
-            raise ValueError(f"Metric '{metric.name}' is already registered.")
-        self.metrics[metric.name] = metric
-
     def list_metrics(self) -> list[str]:
         return list(self.metrics.keys())
