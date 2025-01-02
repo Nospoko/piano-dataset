@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import fortepyan as ff
 import streamlit as st
 import streamlit_pianoroll
@@ -53,34 +54,21 @@ def main():
         df=piece_split.target_df.copy(),
     )
 
-    # This makes a copy of the DataFrame inside the piece
-    generated_df = piece_split.target_df.copy()
+    with st.form("generation simulator"):
+        generated_df = simulate_generation_mistakes(
+            target_df=piece_split.target_df,
+        )
+        submitted = st.form_submit_button("Submit")
 
-    # TODO Make a better UX for explorint generation mistakes
-    # Apply some noise to the fake generated piece
-    pitch_noise = np.random.randint(
-        low=-1,
-        high=1,
-        size=generated_df.shape[0],
-    )
-    generated_df.pitch += pitch_noise
-    velocity_noise = np.random.randint(
-        low=-10,
-        high=10,
-        size=generated_df.shape[0],
-    )
-    generated_df.velocity += velocity_noise
-    start_noise = np.random.random(
-        size=generated_df.shape[0],
-    )
-    # Just want [0 - 0.15] range
-    generated_df.start += start_noise * 0.15
+    if not submitted:
+        st.write("Submit noise settings to continue")
+        return
 
     generated_piece = ff.MidiPiece(
         df=generated_df,
     )
 
-    cols = st.columns(2)
+    cols = st.columns(3)
     with cols[0]:
         streamlit_pianoroll.from_fortepyan(
             piece=source_piece,
@@ -90,6 +78,12 @@ def main():
     with cols[1]:
         streamlit_pianoroll.from_fortepyan(
             piece=source_piece,
+            secondary_piece=generated_piece,
+        )
+
+    with cols[2]:
+        streamlit_pianoroll.from_fortepyan(
+            piece=target_piece,
             secondary_piece=generated_piece,
         )
 
@@ -108,6 +102,50 @@ def main():
                 label=metric_name,
                 value=round(metric, 2),
             )
+
+
+def simulate_generation_mistakes(target_df: pd.DataFrame) -> pd.DataFrame:
+    # TODO Make a better UX for explorint generation mistakes
+    # Apply some noise to the fake generated piece
+    generated_df = target_df.copy()
+    cols = st.columns(3)
+
+    add_pitch_noise = cols[0].checkbox(
+        label="add noise to pitch",
+        value=True,
+    )
+    if add_pitch_noise:
+        pitch_noise = np.random.randint(
+            low=-1,
+            high=1,
+            size=generated_df.shape[0],
+        )
+        generated_df.pitch += pitch_noise
+
+    add_velocity_noise = cols[1].checkbox(
+        label="add noise to velocity",
+        value=True,
+    )
+    if add_velocity_noise:
+        velocity_noise = np.random.randint(
+            low=-10,
+            high=10,
+            size=generated_df.shape[0],
+        )
+        generated_df.velocity += velocity_noise
+
+    add_start_noise = cols[2].checkbox(
+        label="add noise to start",
+        value=True,
+    )
+    if add_start_noise:
+        start_noise = np.random.random(
+            size=generated_df.shape[0],
+        )
+        # Just want [0 - 0.15] range
+        generated_df.start += start_noise * 0.15
+
+    return generated_df
 
 
 if __name__ == "__main__":

@@ -307,7 +307,6 @@ class MetricsRunner:
         self.metrics = []
 
         for metric_config in metrics_config:
-            print(metric_config)
             piano_metric = MetricFactory.create_metric(
                 class_name=metric_config["class"],
                 metric_name=metric_config["name"],

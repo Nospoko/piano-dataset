@@ -1,10 +1,10 @@
-- name: F1Score
+- name: confusion metrics
   class: F1Metric
   params:
     use_pitch_class: true
     min_time_unit: 0.02
 
-- name: KeyCorrelation-a
+- name: key correlation
   class: KeyCorrelationMetric
   params:
     segment_duration: 0.2
