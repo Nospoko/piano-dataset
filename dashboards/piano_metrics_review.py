@@ -114,36 +114,69 @@ def simulate_generation_mistakes(target_df: pd.DataFrame) -> pd.DataFrame:
         label="add noise to pitch",
         value=True,
     )
-    if add_pitch_noise:
+    pitch_noise_percentage = cols[0].number_input(
+        label="% notes affected",
+        value=50,
+        min_value=0,
+        max_value=100,
+        step=10,
+        key="pitch",
+    )
+    if add_pitch_noise and pitch_noise_percentage > 0:
+        n_notes = generated_df.shape[0] * pitch_noise_percentage / 100
+        n_notes = int(n_notes)
+        idxs = generated_df.sample(n_notes).index
         pitch_noise = np.random.randint(
-            low=-1,
-            high=1,
-            size=generated_df.shape[0],
+            low=1,
+            high=12,
+            size=n_notes,
         )
-        generated_df.pitch += pitch_noise
+        generated_df.loc[idxs, "pitch"] += pitch_noise
 
     add_velocity_noise = cols[1].checkbox(
         label="add noise to velocity",
         value=True,
     )
+    velocity_noise_percentage = cols[1].number_input(
+        label="% notes affected",
+        value=50,
+        min_value=0,
+        max_value=100,
+        step=10,
+        key="velocity",
+    )
     if add_velocity_noise:
+        n_notes = generated_df.shape[0] * velocity_noise_percentage / 100
+        n_notes = int(n_notes)
+        idxs = generated_df.sample(n_notes).index
         velocity_noise = np.random.randint(
             low=-10,
             high=10,
-            size=generated_df.shape[0],
+            size=n_notes,
         )
-        generated_df.velocity += velocity_noise
+        generated_df.loc[idxs, "velocity"] += velocity_noise
 
     add_start_noise = cols[2].checkbox(
         label="add noise to start",
         value=True,
     )
+    start_noise_percentage = cols[2].number_input(
+        label="% notes affected",
+        value=50,
+        min_value=0,
+        max_value=100,
+        step=10,
+        key="start",
+    )
     if add_start_noise:
+        n_notes = generated_df.shape[0] * start_noise_percentage / 100
+        n_notes = int(n_notes)
+        idxs = generated_df.sample(n_notes).index
         start_noise = np.random.random(
-            size=generated_df.shape[0],
+            size=n_notes,
         )
         # Just want [0 - 0.15] range
-        generated_df.start += start_noise * 0.15
+        generated_df.loc[idxs, "start"] += start_noise * 0.15
 
     return generated_df
 
