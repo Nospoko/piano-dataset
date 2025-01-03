@@ -20,7 +20,7 @@ def main():
         label="Record ID",
         min_value=0,
         max_value=len(dataset) - 1,
-        value=43,
+        value=99,
     )
 
     record = dataset[record_idx]

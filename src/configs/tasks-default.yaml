@@ -25,3 +25,15 @@
 - class: ParametricHighNotesMasking
   params:
     n_notes: 30
+
+- class: ParametricShortNotesMasking
+  params:
+    n_notes: 10
+
+- class: ParametricShortNotesMasking
+  params:
+    n_notes: 20
+
+- class: ParametricShortNotesMasking
+  params:
+    n_notes: 30

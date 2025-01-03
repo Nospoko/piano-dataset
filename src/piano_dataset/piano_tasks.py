@@ -377,6 +377,46 @@ class ParametricHighNotesMasking(ParametricPianoTask):
         ids = notes_df.index.isin(target_df.index)
         source_df = notes_df[~ids].reset_index(drop=True)
 
+        source_df = source_df.sort_values(by="start", ignore_index=True)
+        target_df = target_df.sort_values(by="start", ignore_index=True)
+        target_split = ParametricTargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
+class ParametricShortNotesMasking(ParametricPianoTask):
+    name = "parametric_short_notes_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<PARAMETRIC_SHORT_NOTES>"
+
+    def __init__(self, n_notes: int = 5):
+        self.n_notes = n_notes
+
+    @property
+    def task_name(self) -> str:
+        # *x* reads *times*
+        name = f"{self.name}-x{self.n_notes}"
+        return name
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.n_notes),
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+        target_df = notes_df.nsmallest(self.n_notes, "duration")
+
+        ids = notes_df.index.isin(target_df.index)
+        source_df = notes_df[~ids].reset_index(drop=True)
+
+        source_df = source_df.sort_values(by="start", ignore_index=True)
+        target_df = target_df.sort_values(by="start", ignore_index=True)
         target_split = ParametricTargetPromptSplit(
             source_df=source_df,
             target_df=target_df,
@@ -389,6 +429,7 @@ class ParametricTaskManager:
     _task_registry = {
         "ParametricTopLineMasking": ParametricTopLineMasking,
         "ParametricHighNotesMasking": ParametricHighNotesMasking,
+        "ParametricShortNotesMasking": ParametricShortNotesMasking,
     }
 
     def __init__(self, tasks_config: dict):
