@@ -425,12 +425,49 @@ class ParametricShortNotesMasking(ParametricPianoTask):
         return target_split
 
 
+class ParametricStrideMasking(ParametricPianoTask):
+    name = "parametric_stride_notes_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<PARAMETRIC_STRIDE_MASK>"
+
+    def __init__(self, stride: int = 2):
+        self.stride = stride
+
+    @property
+    def task_name(self) -> str:
+        # *x* reads *times*
+        name = f"{self.name}-x{self.stride}"
+        return name
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.stride),
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+        # It's an arbitrary choice, but for now let the target
+        # always start from the second note
+        # My version of stride: retain N rows, skip N rows
+        N = self.stride
+        target_notes = [notes_df.iloc[it : it + N] for it in range(N, len(notes_df), 2 * N)]
+        target_df = pd.concat(target_notes)
+
+        source_notes = [notes_df.iloc[it : it + N] for it in range(0, len(notes_df), 2 * N)]
+        source_df = pd.concat(source_notes)
+
+        target_split = ParametricTargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
 class ParametricTaskManager:
-    _task_registry = {
-        "ParametricTopLineMasking": ParametricTopLineMasking,
-        "ParametricHighNotesMasking": ParametricHighNotesMasking,
-        "ParametricShortNotesMasking": ParametricShortNotesMasking,
-    }
+    _task_registry = {task_class.__name__: task_class for task_class in ParametricPianoTask.__subclasses__()}
 
     def __init__(self, tasks_config: dict):
         self.tasks_config = tasks_config
