@@ -480,13 +480,25 @@ class ParametricTaskManager:
             )
             self.tasks[piano_task.task_name] = piano_task
 
-    def list_tasks(self) -> list[str]:
+    def __rich_repr__(self):
+        yield "n_tasks", len(self.tasks)
+        yield "tasks", self.list_task_names()
+
+    def list_task_names(self) -> list[str]:
         task_names = [task_name for task_name in self.tasks]
         return task_names
 
     def get_task(self, task_name) -> ParametricPianoTask:
         task = self.tasks[task_name]
         return task
+
+    def get_special_tokens(self) -> list[str]:
+        special_tokens = []
+        for piano_task in self.tasks.values():
+            special_tokens += piano_task.prefix_tokens
+
+        special_tokens = list(set(special_tokens))
+        return special_tokens
 
     def create_task(
         self,

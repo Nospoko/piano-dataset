@@ -7,9 +7,10 @@ from piano_dataset.piano_tasks import ParametricTaskManager
 
 
 def main():
+    st.write("# PIANO Prediction Tasks")
     task_manager = ParametricTaskManager.load_default()
 
-    available_tasks = task_manager.list_tasks()
+    available_tasks = task_manager.list_task_names()
     task_name = st.selectbox(
         label="Select PIANO task",
         options=available_tasks,
