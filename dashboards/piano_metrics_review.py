@@ -6,7 +6,7 @@ import streamlit_pianoroll
 
 from piano_dataset import PianoTasks
 from dashboards.utils import dataset_configuration
-from piano_metrics.piano_metric import MetricsRunner
+from piano_metrics.piano_metric import MetricsManager
 
 
 def main():
@@ -90,7 +90,7 @@ def main():
             secondary_piece=generated_piece,
         )
 
-    metrics_manager = MetricsRunner.load_default()
+    metrics_manager = MetricsManager.load_default()
 
     metric_results = metrics_manager.calculate_all(
         target_df=piece_split.target_df,

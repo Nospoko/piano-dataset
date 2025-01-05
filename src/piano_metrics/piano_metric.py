@@ -277,7 +277,7 @@ class MetricFactory:
         return metric
 
 
-class MetricsRunner:
+class MetricsManager:
     """Orchestrates the calculation of multiple metrics"""
 
     def __init__(self, metrics_config: list[dict]):
@@ -293,7 +293,7 @@ class MetricsRunner:
             self.metrics.append(piano_metric)
 
     @classmethod
-    def load_default(cls) -> "MetricsRunner":
+    def load_default(cls) -> "MetricsManager":
         with pkg_resources.open_text("configs", "metrics-default.yaml") as f:
             metrics_config = yaml.safe_load(f)
 
