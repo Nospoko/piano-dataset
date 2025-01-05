@@ -17,6 +17,7 @@ from piano_metrics.velocity_distribution import calculate_velocity_metrics
 class MetricResult:
     """Store metric calculation results with metadata"""
 
+    name: str
     metrics: dict[str, float]
     metadata: dict
     metric_config: dict
@@ -78,6 +79,7 @@ class F1Metric(PianoMetric):
             "weighted_precision": f1_metrics["weighted_precision"],
         }
         result = MetricResult(
+            name=self.name,
             metrics=result_metrics,
             metadata=f1_metrics,
             metric_config=self.config,
@@ -118,6 +120,7 @@ class KeyDistributionMetric(PianoMetric):
         )
 
         result = MetricResult(
+            name=self.name,
             metrics=key_metrics["distribution_metrics"],
             metadata=key_metrics["metadata"],
             metric_config=self.config,
@@ -149,6 +152,7 @@ class DStartDistributionMetric(PianoMetric):
             n_bins=self.n_bins,
         )
         result = MetricResult(
+            name=self.name,
             metrics=dstart_metrics["distribution_metrics"],
             metadata=dstart_metrics["metadata"],
             metric_config=self.config,
@@ -180,6 +184,7 @@ class DurationDistributionMetric(PianoMetric):
             n_bins=self.n_bins,
         )
         result = MetricResult(
+            name=self.name,
             metrics=duration_metrics["distribution_metrics"],
             metadata=duration_metrics["metadata"],
             metric_config=self.config,
@@ -212,6 +217,7 @@ class VelocityDistributionMetric(PianoMetric):
         )
 
         result = MetricResult(
+            name=self.name,
             metrics=velocity_metrics["distribution_metrics"],
             metadata=velocity_metrics["metadata"],
             metric_config=self.config,
@@ -244,6 +250,7 @@ class PitchDistributionMetric(PianoMetric):
         )
 
         result = MetricResult(
+            name=self.name,
             metrics=pitch_metrics["distribution_metrics"],
             metadata=pitch_metrics["metadata"],
             metric_config=self.config,
@@ -270,6 +277,7 @@ class MetricFactory:
     ) -> PianoMetric:
         if class_name not in cls._registry:
             raise ValueError(f"Unknown metric class: {class_name}")
+
         metric = cls._registry[class_name](
             name=metric_name,
             **params,
@@ -304,31 +312,17 @@ class MetricsManager:
         self,
         target_df: pd.DataFrame,
         generated_df: pd.DataFrame,
-    ) -> dict[str, MetricResult]:
+    ) -> list[MetricResult]:
         """Calculate all metrics for a single example"""
-        results = {}
+        results = []
         for piano_metric in self.metrics:
-            results[piano_metric.name] = piano_metric.calculate(
+            metric_result = piano_metric.calculate(
                 target_df=target_df,
                 generated_df=generated_df,
             )
+            results.append(metric_result)
+
         return results
-
-    def calculate_batch(
-        self,
-        targets: list[pd.DataFrame],
-        generations: list[pd.DataFrame],
-    ) -> dict[str, list[MetricResult]]:
-        """Calculate metrics for a batch of examples"""
-        batch_results = {piano_metric.name: [] for piano_metric in self.metrics}
-
-        for target_df, generated_df in zip(targets, generations):
-            results = self.calculate_all(target_df, generated_df)
-            # FIXME This whole method should probably be left for the user to implement (i.e. removed)
-            for metric_name, result in results.items():
-                batch_results[metric_name].append(result)
-
-        return batch_results
 
     def list_metrics(self) -> list[str]:
         return list(self.metrics.keys())

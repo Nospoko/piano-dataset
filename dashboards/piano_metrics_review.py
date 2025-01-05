@@ -96,10 +96,11 @@ def main():
         target_df=piece_split.target_df,
         generated_df=generated_df,
     )
-    for metric_class, metric_result in metric_results.items():
+    for metric_result in metric_results:
         n_metrics = len(metric_result.metrics)
         cols = st.columns(n_metrics + 1)
-        cols[0].write(f"**{metric_class}:**")
+        cols[0].write(f"**{metric_result.name}:**")
+
         for it, (metric_name, metric) in enumerate(metric_result.metrics.items()):
             cols[it + 1].metric(
                 label=metric_name,
