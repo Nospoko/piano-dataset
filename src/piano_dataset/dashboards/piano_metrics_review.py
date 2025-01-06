@@ -5,8 +5,8 @@ import streamlit as st
 import streamlit_pianoroll
 
 from piano_dataset import PianoTasks
-from dashboards.utils import dataset_configuration
 from piano_metrics.piano_metric import MetricsManager
+from piano_dataset.dashboards.utils import dataset_configuration
 
 
 def main():

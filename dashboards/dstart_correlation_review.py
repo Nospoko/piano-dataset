@@ -6,7 +6,7 @@ import streamlit as st
 import streamlit_pianoroll
 import plotly.graph_objects as go
 
-from dashboards.utils import dataset_configuration
+from piano_dataset.dashboards.utils import dataset_configuration
 from piano_metrics.dstart_distribution import calculate_dstart_metrics
 
 

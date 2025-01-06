@@ -6,9 +6,9 @@ import fortepyan as ff
 import streamlit as st
 import streamlit_pianoroll
 import plotly.graph_objects as go
-from utils import dataset_configuration
 
 from piano_metrics.f1_piano import calculate_f1
+from piano_dataset.dashboards.utils import dataset_configuration
 
 
 def plot_f1_time_series(metrics: dict, title: str = "") -> go.Figure:

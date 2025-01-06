@@ -9,6 +9,7 @@ description = "Functional definitions of tasks used in the PIANO dataset"
 dependencies = [
     "pandas",
     "numpy",
+    "scipy==1.14.1",
 ]
 
 [project.optional-dependencies]

@@ -5,7 +5,7 @@ import streamlit_pianoroll
 import plotly.graph_objects as go
 from datasets import load_dataset
 
-from dashboards.utils import select_part_dataset
+from piano_dataset.dashboards.utils import select_part_dataset
 from piano_metrics.key_distribution import SpiralArray, detect_key_from_notes
 
 
