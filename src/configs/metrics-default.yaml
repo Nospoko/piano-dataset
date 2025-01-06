@@ -1,0 +1,22 @@
+- name: confusion metrics
+  class: F1Metric
+  params:
+    use_pitch_class: true
+    min_time_unit: 0.02
+
+- name: key distribution
+  class: KeyDistributionMetric
+  params:
+    segment_duration: 0.2
+
+- name: dstart distribution
+  class: DStartDistributionMetric
+
+- name: duration distribution
+  class: DurationDistributionMetric
+
+- name: velocity distribution
+  class: VelocityDistributionMetric
+
+- name: pitch distribution
+  class: PitchDistributionMetric
