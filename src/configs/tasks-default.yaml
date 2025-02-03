@@ -1,47 +1,47 @@
-- class: ParametricTopLineMasking
+- class: TopLineMasking
   params:
     n_repetitions: 1
 
-- class: ParametricTopLineMasking
+- class: TopLineMasking
   params:
     n_repetitions: 2
 
-- class: ParametricTopLineMasking
+- class: TopLineMasking
   params:
     n_repetitions: 3
 
-- class: ParametricHighNotesMasking
+- class: HighNotesMasking
   params:
     n_notes: 5
 
-- class: ParametricHighNotesMasking
+- class: HighNotesMasking
   params:
     n_notes: 10
 
-- class: ParametricHighNotesMasking
+- class: HighNotesMasking
   params:
     n_notes: 20
 
-- class: ParametricHighNotesMasking
+- class: HighNotesMasking
   params:
     n_notes: 30
 
-- class: ParametricShortNotesMasking
+- class: ShortNotesMasking
   params:
     n_notes: 10
 
-- class: ParametricShortNotesMasking
+- class: ShortNotesMasking
   params:
     n_notes: 20
 
-- class: ParametricStrideMasking
+- class: StrideMasking
   params:
     stride: 2
 
-- class: ParametricStrideMasking
+- class: StrideMasking
   params:
     stride: 5
 
-- class: ParametricStrideMasking
+- class: StrideMasking
   params:
     stride: 20
