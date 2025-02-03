@@ -15,6 +15,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "datasets",
+    "streamlit",
+    "streamlit_pianoroll",
 ]
 
 [tool.setuptools.packages.find]

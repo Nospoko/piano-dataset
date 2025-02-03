@@ -3,291 +3,11 @@ import importlib.resources as pkg_resources
 import yaml
 import pandas as pd
 
-from piano_dataset.piano_task import (
-    PianoTask,
-    PromptTaskType,
-    TargetPromptSplit,
-    ParametricPianoTask,
-    ParametricTargetPromptSplit,
-)
+from piano_dataset.piano_task import PianoTask, PromptTaskType, TargetPromptSplit
 
 
-class PianoTaskManager:
-    def __init__(self):
-        self._tasks = {}
-
-    def register_task(self, task_cls: PianoTask):
-        if not hasattr(task_cls, "name") or not task_cls.name:
-            raise ValueError("Task class must have a 'name' attribute.")
-
-        if task_cls.name in self._tasks:
-            raise ValueError(f"Task '{task_cls.name}' is already registered.")
-        self._tasks[task_cls.name] = task_cls
-
-    def get_task(self, task_name: str) -> PianoTask:
-        task_cls = self._tasks.get(task_name)
-        task = task_cls()
-        return task
-
-    def list_tasks(self) -> list[str]:
-        return list(self._tasks.keys())
-
-
-class AboveMedianPrediction(PianoTask):
-    name = "above_median_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<LOW_FROM_MEDIAN>"
-    target_token = "<HIGH_FROM_MEDIAN>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        median = notes_df.pitch.median()
-        source_df = notes_df[notes_df.pitch < median].reset_index(drop=True)
-        target_df = notes_df[notes_df.pitch >= median].reset_index(drop=True)
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class AboveLowQuartilePrediction(PianoTask):
-    name = "above_low_quartile_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<BELOW_LOW_QUARTILE>"
-    target_token = "<ABOVE_LOW_QUARTILE>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        q1 = notes_df.pitch.quantile(0.25)
-        source_df = notes_df[notes_df.pitch < q1].reset_index(drop=True)
-        target_df = notes_df[notes_df.pitch >= q1].reset_index(drop=True)
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class AboveHighQuartilePrediction(PianoTask):
-    name = "above_high_quartile_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<BELOW_HIGH_QUARTILE>"
-    target_token = "<ABOVE_HIGH_QUARTILE>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        q3 = notes_df.pitch.quantile(0.75)
-        source_df = notes_df[notes_df.pitch < q3].reset_index(drop=True)
-        target_df = notes_df[notes_df.pitch >= q3].reset_index(drop=True)
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class BelowLowQuartilePrediction(PianoTask):
-    name = "below_low_quartile_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<ABOVE_LOW_QUARTILE>"
-    target_token = "<BELOW_LOW_QUARTILE>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        q1 = notes_df.pitch.quantile(0.25)
-        source_df = notes_df[notes_df.pitch >= q1].reset_index(drop=True)
-        target_df = notes_df[notes_df.pitch < q1].reset_index(drop=True)
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class BelowHighQuartilePrediction(PianoTask):
-    name = "below_high_quartile_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<ABOVE_HIGH_QUARTILE>"
-    target_token = "<BELOW_HIGH_QUARTILE>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        q3 = notes_df.pitch.quantile(0.75)
-        source_df = notes_df[notes_df.pitch >= q3].reset_index(drop=True)
-        target_df = notes_df[notes_df.pitch < q3].reset_index(drop=True)
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class BelowMedianPrediction(PianoTask):
-    name = "below_median_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<HIGH_FROM_MEDIAN>"
-    target_token = "<LOW_FROM_MEDIAN>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        median = notes_df.pitch.median()
-        source_df = notes_df[notes_df.pitch >= median].reset_index(drop=True)
-        target_df = notes_df[notes_df.pitch < median].reset_index(drop=True)
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class MiddleQuartilesPrediction(PianoTask):
-    name = "middle_quartile_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<EXTREME_QUARTILES>"
-    target_token = "<MIDDLE_QUARTILES>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        q1 = notes_df.pitch.quantile(0.25)
-        q3 = notes_df.pitch.quantile(0.75)
-
-        ids = (notes_df.pitch < q1) | (notes_df.pitch >= q3)
-        source_df = notes_df[ids].reset_index(drop=True)
-        target_df = notes_df[~ids].reset_index(drop=True)
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class ExtremeQuartilesPrediction(PianoTask):
-    name = "extreme_quartile_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<MIDDLE_QUARTILES>"
-    target_token = "<EXTREME_QUARTILES>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        q1 = notes_df.pitch.quantile(0.25)
-        q3 = notes_df.pitch.quantile(0.75)
-        ids = (notes_df.pitch < q1) | (notes_df.pitch >= q3)
-        target_df = notes_df[ids]
-        source_df = notes_df[~ids]
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class FastNotesPrediction(PianoTask):
-    name = "fast_notes_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<SLOW_NOTES>"
-    target_token = "<FAST_NOTES>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        ids = notes_df.duration < 0.2
-        target_df = notes_df[ids]
-        source_df = notes_df[~ids]
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class TopLinePrediction(PianoTask):
-    name = "top_line_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<BELOW_TOP_LINE>"
-    target_token = "<TOP_LINE>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        start_time = notes_df.start.min()
-        end_time = notes_df.start.max()
-
-        window_size = 0.2
-        top_line_idxs = []
-        while start_time <= end_time:
-            # Get notes that were ringing during this time interval
-            ids = (notes_df["start"] <= start_time + window_size) & (notes_df["end"] > start_time)
-            if ids.any():
-                idx = notes_df[ids].pitch.idxmax()
-                top_line_idxs.append(idx)
-
-            start_time += window_size
-
-        ids = notes_df.index.isin(top_line_idxs)
-        target_df = notes_df[ids]
-        source_df = notes_df[~ids]
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class LowLinePrediction(PianoTask):
-    name = "low_line_prediction"
-    type = PromptTaskType.COMBINE
-    source_token = "<ABOVE_LOW_LINE>"
-    target_token = "<LOW_LINE>"
-
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        start_time = notes_df.start.min()
-        end_time = notes_df.start.max()
-
-        window_size = 0.2
-        top_line_idxs = []
-        while start_time <= end_time:
-            # Get notes that were ringing during this time interval
-            ids = (notes_df["start"] <= start_time + window_size) & (notes_df["end"] > start_time)
-            if ids.any():
-                idx = notes_df[ids].pitch.idxmin()
-                top_line_idxs.append(idx)
-
-            start_time += window_size
-
-        ids = notes_df.index.isin(top_line_idxs)
-        target_df = notes_df[ids]
-        source_df = notes_df[~ids]
-
-        target_split = TargetPromptSplit(
-            source_df=source_df,
-            target_df=target_df,
-            source_token=self.source_token,
-            target_token=self.target_token,
-        )
-        return target_split
-
-
-class ParametricTopLineMasking(ParametricPianoTask):
-    name = "parametric_top_line_masking"
+class TopLineMasking(PianoTask):
+    name = "top_line_masking"
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_TOP_LINE>"
 
@@ -326,7 +46,7 @@ class ParametricTopLineMasking(ParametricPianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         source_df = notes_df.copy()
         target_notes = []
         for it in range(self.n_repetitions):
@@ -341,7 +61,7 @@ class ParametricTopLineMasking(ParametricPianoTask):
 
         target_df = pd.concat(target_notes, axis=0)
 
-        target_split = ParametricTargetPromptSplit(
+        target_split = TargetPromptSplit(
             source_df=source_df,
             target_df=target_df,
             prefix_tokens=self.prefix_tokens,
@@ -349,8 +69,8 @@ class ParametricTopLineMasking(ParametricPianoTask):
         return target_split
 
 
-class ParametricHighNotesMasking(ParametricPianoTask):
-    name = "parametric_high_notes_masking"
+class HighNotesMasking(PianoTask):
+    name = "high_notes_masking"
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_HIGH_NOTES>"
 
@@ -371,7 +91,7 @@ class ParametricHighNotesMasking(ParametricPianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         target_df = notes_df.nlargest(self.n_notes, "pitch")
 
         ids = notes_df.index.isin(target_df.index)
@@ -379,7 +99,7 @@ class ParametricHighNotesMasking(ParametricPianoTask):
 
         source_df = source_df.sort_values(by="start", ignore_index=True)
         target_df = target_df.sort_values(by="start", ignore_index=True)
-        target_split = ParametricTargetPromptSplit(
+        target_split = TargetPromptSplit(
             source_df=source_df,
             target_df=target_df,
             prefix_tokens=self.prefix_tokens,
@@ -387,8 +107,8 @@ class ParametricHighNotesMasking(ParametricPianoTask):
         return target_split
 
 
-class ParametricShortNotesMasking(ParametricPianoTask):
-    name = "parametric_short_notes_masking"
+class ShortNotesMasking(PianoTask):
+    name = "short_notes_masking"
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_SHORT_NOTES>"
 
@@ -409,7 +129,7 @@ class ParametricShortNotesMasking(ParametricPianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         target_df = notes_df.nsmallest(self.n_notes, "duration")
 
         ids = notes_df.index.isin(target_df.index)
@@ -417,7 +137,7 @@ class ParametricShortNotesMasking(ParametricPianoTask):
 
         source_df = source_df.sort_values(by="start", ignore_index=True)
         target_df = target_df.sort_values(by="start", ignore_index=True)
-        target_split = ParametricTargetPromptSplit(
+        target_split = TargetPromptSplit(
             source_df=source_df,
             target_df=target_df,
             prefix_tokens=self.prefix_tokens,
@@ -425,8 +145,8 @@ class ParametricShortNotesMasking(ParametricPianoTask):
         return target_split
 
 
-class ParametricStrideMasking(ParametricPianoTask):
-    name = "parametric_stride_notes_masking"
+class StrideMasking(PianoTask):
+    name = "stride_notes_masking"
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_STRIDE_MASK>"
 
@@ -447,7 +167,7 @@ class ParametricStrideMasking(ParametricPianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         # It's an arbitrary choice, but for now let the target
         # always start from the second note
         # My version of stride: retain N rows, skip N rows
@@ -458,7 +178,7 @@ class ParametricStrideMasking(ParametricPianoTask):
         source_notes = [notes_df.iloc[it : it + N] for it in range(0, len(notes_df), 2 * N)]
         source_df = pd.concat(source_notes)
 
-        target_split = ParametricTargetPromptSplit(
+        target_split = TargetPromptSplit(
             source_df=source_df,
             target_df=target_df,
             prefix_tokens=self.prefix_tokens,
@@ -466,8 +186,8 @@ class ParametricStrideMasking(ParametricPianoTask):
         return target_split
 
 
-class ParametricTaskManager:
-    _task_registry = {task_class.__name__: task_class for task_class in ParametricPianoTask.__subclasses__()}
+class PianoTaskManager:
+    _task_registry = {task_class.__name__: task_class for task_class in PianoTask.__subclasses__()}
 
     def __init__(self, tasks_config: dict):
         self.tasks_config = tasks_config
@@ -488,7 +208,7 @@ class ParametricTaskManager:
         task_names = [task_name for task_name in self.tasks]
         return task_names
 
-    def get_task(self, task_name) -> ParametricPianoTask:
+    def get_task(self, task_name) -> PianoTask:
         task = self.tasks[task_name]
         return task
 
@@ -504,7 +224,7 @@ class ParametricTaskManager:
         self,
         class_name: str,
         params: dict,
-    ) -> ParametricPianoTask:
+    ) -> PianoTask:
         if class_name not in self._task_registry:
             raise ValueError(f"Unknown task class: {class_name}")
 
@@ -514,7 +234,7 @@ class ParametricTaskManager:
         return piano_task
 
     @classmethod
-    def load_default(cls) -> "ParametricTaskManager":
+    def load_default(cls) -> "PianoTaskManager":
         with pkg_resources.open_text("configs", "tasks-default.yaml") as f:
             tasks_config = yaml.safe_load(f)
 

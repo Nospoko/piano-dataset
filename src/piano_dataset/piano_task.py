@@ -20,36 +20,6 @@ class PromptTaskType(Enum):
 
 
 class TargetPromptSplit(NamedTuple):
-    source_token: str
-    target_token: str
-    source_df: pd.DataFrame
-    target_df: pd.DataFrame
-
-    def __rich_repr__(self):
-        yield "source_notes", self.source_df.shape[0]
-        yield "target_notes", self.target_df.shape[0]
-        yield "source_token", self.source_token
-        yield "target_token", self.target_token
-
-
-class PianoTask(ABC):
-    name: str
-    source_token: str
-    target_token: str
-    type: PromptTaskType
-
-    @abstractmethod
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        pass
-
-    def __rich_repr__(self):
-        yield "name", self.name
-        yield "type", self.type.name
-        yield "source_token", self.source_token
-        yield "target_token", self.target_token
-
-
-class ParametricTargetPromptSplit(NamedTuple):
     prefix_tokens: list[str]
     source_df: pd.DataFrame
     target_df: pd.DataFrame
@@ -60,13 +30,13 @@ class ParametricTargetPromptSplit(NamedTuple):
         yield "prefix_tokens", self.prefix_tokens
 
 
-class ParametricPianoTask(ABC):
+class PianoTask(ABC):
     name: str
     task_token: str
     type: PromptTaskType
 
     @abstractmethod
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> ParametricTargetPromptSplit:
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         pass
 
     @property
