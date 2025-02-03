@@ -4,8 +4,8 @@ import fortepyan as ff
 import streamlit as st
 import streamlit_pianoroll
 
-from piano_dataset import PianoTasks
 from piano_metrics.piano_metric import MetricsManager
+from piano_dataset.piano_tasks import PianoTaskManager
 from piano_dataset.dashboards.utils import dataset_configuration
 
 
@@ -39,12 +39,13 @@ def main():
         )
     piece_part = piece[piece_start:piece_finish]
 
-    available_tasks = PianoTasks.list_tasks()
+    task_manager = PianoTaskManager.load_default()
+    available_tasks = task_manager.list_task_names()
     task_name = st.selectbox(
         label="Select PIANO task",
         options=available_tasks,
     )
-    piano_task = PianoTasks.get_task(task_name=task_name)
+    piano_task = task_manager.get_task(task_name=task_name)
     piece_split = piano_task.prompt_target_split(piece_part.df)
 
     source_piece = ff.MidiPiece(
