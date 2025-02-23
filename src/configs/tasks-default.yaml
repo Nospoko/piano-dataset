@@ -1,3 +1,11 @@
+- class: BottomLineMasking
+  params:
+    n_repetitions: 1
+
+- class: BottomLineMasking
+  params:
+    n_repetitions: 2
+
 - class: TopLineMasking
   params:
     n_repetitions: 1
@@ -9,6 +17,14 @@
 - class: TopLineMasking
   params:
     n_repetitions: 3
+
+- class: LowNotesMasking
+  params:
+    n_notes: 5
+
+- class: LowNotesMasking
+  params:
+    n_notes: 10
 
 - class: HighNotesMasking
   params:
@@ -29,6 +45,10 @@
 - class: ShortNotesMasking
   params:
     n_notes: 10
+
+- class: LongNotesMasking
+  params:
+    n_notes: 20
 
 - class: ShortNotesMasking
   params:

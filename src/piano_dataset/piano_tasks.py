@@ -69,6 +69,69 @@ class TopLineMasking(PianoTask):
         return target_split
 
 
+class BottomLineMasking(PianoTask):
+    name = "bottom_line_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<PARAMETRIC_BOTTOM_LINE>"
+
+    def __init__(self, n_repetitions: int = 1):
+        self.n_repetitions = n_repetitions
+
+    @property
+    def task_name(self) -> str:
+        # *x* reads *times*
+        name = f"{self.name}-x{self.n_repetitions}"
+        return name
+
+    def _find_bottom_line_notes(self, notes_df: pd.DataFrame) -> list[int]:
+        start_time = notes_df.start.min()
+        end_time = notes_df.start.max()
+
+        # TODO Move to config
+        window_size = 0.2
+        bottom_line_idxs = []
+        while start_time <= end_time:
+            # Get notes that were ringing during this time interval
+            ids = (notes_df["start"] <= start_time + window_size) & (notes_df["end"] > start_time)
+            if ids.any():
+                idx = notes_df[ids].pitch.idxmin()
+                bottom_line_idxs.append(idx)
+
+            start_time += window_size
+
+        return bottom_line_idxs
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.n_repetitions),
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        source_df = notes_df.copy()
+        target_notes = []
+        for it in range(self.n_repetitions):
+            bottom_line_idxs = self._find_bottom_line_notes(source_df)
+
+            ids = source_df.index.isin(bottom_line_idxs)
+
+            target_df = source_df[ids]
+            target_notes.append(target_df)
+
+            source_df = source_df[~ids]
+
+        target_df = pd.concat(target_notes, axis=0)
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
 class HighNotesMasking(PianoTask):
     name = "high_notes_masking"
     type = PromptTaskType.COMBINE
@@ -107,6 +170,46 @@ class HighNotesMasking(PianoTask):
         return target_split
 
 
+class LowNotesMasking(PianoTask):
+    name = "low_notes_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<PARAMETRIC_LOW_NOTES>"
+
+    def __init__(self, n_notes: int = 5):
+        self.n_notes = n_notes
+
+    @property
+    def task_name(self) -> str:
+        # *x* reads *times*
+        name = f"{self.name}-x{self.n_notes}"
+        return name
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.n_notes),
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        target_df = notes_df.nsmallest(self.n_notes, "pitch")
+
+        ids = notes_df.index.isin(target_df.index)
+        source_df = notes_df[~ids].reset_index(drop=True)
+
+        source_df = source_df.sort_values(by="start", ignore_index=True)
+        target_df = target_df.sort_values(by="start", ignore_index=True)
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+
+        return target_split
+
+
 class ShortNotesMasking(PianoTask):
     name = "short_notes_masking"
     type = PromptTaskType.COMBINE
@@ -131,6 +234,44 @@ class ShortNotesMasking(PianoTask):
 
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         target_df = notes_df.nsmallest(self.n_notes, "duration")
+
+        ids = notes_df.index.isin(target_df.index)
+        source_df = notes_df[~ids].reset_index(drop=True)
+
+        source_df = source_df.sort_values(by="start", ignore_index=True)
+        target_df = target_df.sort_values(by="start", ignore_index=True)
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
+class LongNotesMasking(PianoTask):
+    name = "long_notes_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<PARAMETRIC_LONG_NOTES>"
+
+    def __init__(self, n_notes: int = 5):
+        self.n_notes = n_notes
+
+    @property
+    def task_name(self) -> str:
+        # *x* reads *times*
+        name = f"{self.name}-x{self.n_notes}"
+        return name
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.n_notes),
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        target_df = notes_df.nlargest(self.n_notes, "duration")
 
         ids = notes_df.index.isin(target_df.index)
         source_df = notes_df[~ids].reset_index(drop=True)
