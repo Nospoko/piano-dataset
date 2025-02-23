@@ -335,11 +335,21 @@ class PianoTaskManager:
         self.tasks = {}
 
         for task_config in tasks_config:
-            piano_task = self.create_task(
-                class_name=task_config["class"],
-                params=task_config.get("params", {}),
-            )
-            self.tasks[piano_task.task_name] = piano_task
+            if "params" in task_config:
+                piano_task = self.create_task(
+                    class_name=task_config["class"],
+                    params=task_config.get("params", {}),
+                )
+                self.tasks[piano_task.task_name] = piano_task
+            elif "param_range" in task_config:
+                for params in task_config["param_range"]:
+                    piano_task = self.create_task(
+                        class_name=task_config["class"],
+                        params=params,
+                    )
+                    self.tasks[piano_task.task_name] = piano_task
+            else:
+                raise ValueError(f"Invalid PIANO task config! {task_config}")
 
     def __rich_repr__(self):
         yield "n_tasks", len(self.tasks)
