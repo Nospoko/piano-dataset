@@ -2,44 +2,6 @@
 
 Demo: https://huggingface.co/spaces/epr-labs/PIANO-Dataset
 
-Usage:
-
-```python
-from piano_dataset import PianoTasks
-from datasets import load_dataset
-from fortepyan import MidiPiece
-
-
-dataset = load_dataset("epr-labs/maestro-sustain-v2", split="test")
-piece = MidiPiece.from_huggingface(dataset[33])
-
-PianoTasks.list_tasks()
-
-# [
-#     'above_median_prediction',
-#     'above_low_quartile_prediction',
-#     'above_high_quartile_prediction',
-#     'below_low_quartile_prediction',
-#     'below_high_quartile_prediction',
-#     'below_median_prediction',
-#     'middle_quartile_prediction',
-#     'extreme_quartile_prediction'
-#     ...
-# ]
-
-piano_task = PianoTasks.get_task(task_name='top_line_prediction')
-target_prompt = piano_task.prompt_target_split(notes_df=piece.df)
-
-target_prompt
-# TargetPromptSplit(
-#     'TargetPromptSplit',
-#     source_notes=1588,
-#     target_notes=1538,
-#     source_token='<MIDDLE_QUARTILES>',
-#     target_token='<EXTREME_QUARTILES>'
-# )
-```
-
 ## Development
 
 ```sh
