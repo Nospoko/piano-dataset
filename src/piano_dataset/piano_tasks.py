@@ -132,8 +132,8 @@ class BottomLineMasking(PianoTask):
         return target_split
 
 
-class RangeMasking(PianoTask):
-    name = "range_masking"
+class TimeRangeMasking(PianoTask):
+    name = "time_range_masking"
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_RANGE>"
 
@@ -143,17 +143,9 @@ class RangeMasking(PianoTask):
 
     @property
     def task_name(self) -> str:
-        # *x* reads *times*
+        # x cam be interpreted as (from -- to)
         name = f"{self.name}-x{self.start_sec}-x{self.end_sec}"
         return name
-
-    def _find_idx_in_range(self, notes_df: pd.DataFrame) -> list[int]:
-        # TODO: move to config
-        tolerance = 0.05
-
-        ids = (notes_df["start"] >= self.start_sec - tolerance) & (notes_df["start"] <= self.end_sec + tolerance)
-
-        return ids
 
     @property
     def prefix_tokens(self) -> list[str]:
@@ -167,10 +159,12 @@ class RangeMasking(PianoTask):
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         source_df = notes_df.copy()
 
-        range_idx = self._find_idx_in_range(source_df)
+        # TODO: remove or add to config
+        tolerance = 0.05
+        # Find indexes in specified range
+        range_idx = (notes_df["start"] >= self.start_sec - tolerance) & (notes_df["start"] <= self.end_sec + tolerance)
 
         target_df = source_df[range_idx]
-
         source_df = source_df[~range_idx]
 
         target_split = TargetPromptSplit(

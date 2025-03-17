@@ -18,14 +18,14 @@
     - n_notes: 15
     - n_notes: 20
 
-- class: RangeMasking
+- class: TimeRangeMasking
   param_range:
     - start_sec: 0
       end_sec: 5
-    - start_sec: 5
-      end_sec: 10
+    - start_sec: 1
+      end_sec: 5
     - start_sec: 0
-      end_sec: 10
+      end_sec: 4
 
 - class: HighNotesMasking
   param_range:
