@@ -152,17 +152,15 @@ class TimeRangeMasking(PianoTask):
         prefix_tokens = [
             self.task_token,
             self.task_parameter_token(self.start_sec),
-            self.task_parameter_token(self.end_sec)
+            self.task_parameter_token(self.end_sec),
         ]
         return prefix_tokens
 
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         source_df = notes_df.copy()
 
-        # TODO: remove or add to config
-        tolerance = 0.05
         # Find indexes in specified range
-        range_idx = (notes_df["start"] >= self.start_sec - tolerance) & (notes_df["start"] <= self.end_sec + tolerance)
+        range_idx = (notes_df["start"] >= self.start_sec) & (notes_df["start"] <= self.end_sec)
 
         target_df = source_df[range_idx]
         source_df = source_df[~range_idx]
