@@ -327,6 +327,55 @@ class StrideMasking(PianoTask):
         return target_split
 
 
+class ChordMasking(PianoTask):
+    name = "chord_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<CHORD_MASK>"
+
+    def __init__(self, n_notes_threshold: int = 3):
+        self.n_notes_threshold = n_notes_threshold
+
+    @property
+    def task_name(self) -> str:
+        name = f"{self.name}-x{self.n_notes_threshold}"
+        return name
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        mask = notes_df.start.diff() < 0.015
+
+        # Identify start of new groups
+        groups = (mask != mask.shift()).cumsum()
+
+        # Count the size of each group
+        group_sizes = groups.map(groups.value_counts())
+
+        # Time differences from the first note of the chord
+        ids = (mask) & (group_sizes >= self.n_notes_threshold - 1)
+
+        # And include the first note as well
+        # NOTE Actually let's NOT include the first not, and
+        # expect the models to build chords on top of existing notes
+        # NOTE It's going to build on top of the first note, not the lowest
+        # ids = ids | ids.shift(-1, fill_value=False)
+
+        source_df = notes_df[~ids].reset_index(drop=True)
+        target_df = notes_df[ids].reset_index(drop=True)
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
 class PianoTaskManager:
     _task_registry = {task_class.__name__: task_class for task_class in PianoTask.__subclasses__()}
 

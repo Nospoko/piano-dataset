@@ -63,11 +63,17 @@ def main():
     cols = st.columns(2)
     with cols[0]:
         st.write("## Prompt")
-        streamlit_pianoroll.from_fortepyan(source_piece)
+        if not source_piece.df.empty:
+            streamlit_pianoroll.from_fortepyan(source_piece)
+        else:
+            st.write("Source empty!")
 
     with cols[1]:
         st.write("## Target")
-        streamlit_pianoroll.from_fortepyan(target_piece)
+        if not target_piece.df.empty:
+            streamlit_pianoroll.from_fortepyan(target_piece)
+        else:
+            st.write("Target empty!")
 
     st.write("## Combined")
     streamlit_pianoroll.from_fortepyan(
