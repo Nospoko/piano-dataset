@@ -24,9 +24,17 @@ class TargetPromptSplit(NamedTuple):
     source_df: pd.DataFrame
     target_df: pd.DataFrame
 
+    @property
+    def n_target_notes(self) -> int:
+        return self.target_df.shape[0]
+
+    @property
+    def n_source_notes(self) -> int:
+        return self.source_df.shape[0]
+
     def __rich_repr__(self):
-        yield "source_notes", self.source_df.shape[0]
-        yield "target_notes", self.target_df.shape[0]
+        yield "source_notes", self.n_source_notes
+        yield "target_notes", self.n_target_notes
         yield "prefix_tokens", self.prefix_tokens
 
 
