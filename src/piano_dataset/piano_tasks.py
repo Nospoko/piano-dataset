@@ -132,6 +132,47 @@ class BottomLineMasking(PianoTask):
         return target_split
 
 
+class TimeRangeMasking(PianoTask):
+    name = "time_range_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<PARAMETRIC_RANGE>"
+
+    def __init__(self, start_sec: int = 0, end_sec: int = 5):
+        self.start_sec = start_sec
+        self.end_sec = end_sec
+
+    @property
+    def task_name(self) -> str:
+        # x cam be interpreted as (from -- to)
+        name = f"{self.name}-x{self.start_sec}-x{self.end_sec}"
+        return name
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+            self.task_parameter_token(self.start_sec),
+            self.task_parameter_token(self.end_sec),
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        source_df = notes_df.copy()
+
+        # Find indexes in specified range
+        range_idx = (notes_df["start"] >= self.start_sec) & (notes_df["start"] <= self.end_sec)
+
+        target_df = source_df[range_idx]
+        source_df = source_df[~range_idx]
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
 class HighNotesMasking(PianoTask):
     name = "high_notes_masking"
     type = PromptTaskType.COMBINE
