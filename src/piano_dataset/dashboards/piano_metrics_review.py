@@ -178,12 +178,8 @@ def simulate_generation_mistakes(target_df: pd.DataFrame) -> pd.DataFrame:
         n_notes = generated_df.shape[0] * start_noise_percentage / 100
         n_notes = int(n_notes)
         idxs = generated_df.sample(n_notes).index
-        start_noise = (
-            np.random.random(
-                size=n_notes,
-            )
-            - 0.5
-        )
+        start_noise = np.random.random(size=n_notes) - 0.5
+
         # Just want [-0.15 - 0.15] range
         generated_df.loc[idxs, "start"] += start_noise * 0.3
 

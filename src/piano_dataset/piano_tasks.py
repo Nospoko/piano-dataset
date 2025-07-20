@@ -376,6 +376,45 @@ class ChordMasking(PianoTask):
         return target_split
 
 
+class RandomMasking(PianoTask):
+    name = "random_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<RANDOM_MASK>"
+
+    def __init__(self, mask_percentage: int = 50):
+        self.mask_percentage = mask_percentage
+
+    @property
+    def masking_fraction(self) -> float:
+        return self.mask_percentage / 100
+
+    @property
+    def task_name(self) -> str:
+        name = f"{self.name}-x{self.mask_percentage}"
+        return name
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        target_df = notes_df.sample(frac=self.masking_fraction)
+        source_df = notes_df.drop(target_df.index)
+
+        source_df = source_df.reset_index(drop=True)
+        target_df = target_df.sort_values("start", ignore_index=True)
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
 class PianoTaskManager:
     _task_registry = {task_class.__name__: task_class for task_class in PianoTask.__subclasses__()}
 

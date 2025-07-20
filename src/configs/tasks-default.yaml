@@ -57,3 +57,18 @@
     - stride: 10
     - stride: 15
     - stride: 20
+
+- class: RandomMasking
+  param_range:
+    - mask_percentage: 5
+    - mask_percentage: 10
+    - mask_percentage: 15
+    - mask_percentage: 20
+    - mask_percentage: 30
+    - mask_percentage: 40
+    - mask_percentage: 50
+    - mask_percentage: 60
+    - mask_percentage: 70
+    - mask_percentage: 80
+    - mask_percentage: 90
+    - mask_percentage: 95
