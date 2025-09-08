@@ -72,3 +72,21 @@
     - mask_percentage: 80
     - mask_percentage: 90
     - mask_percentage: 95
+
+- class: LinearRandomMasking
+  param_range:
+    - mask_percentage: 50
+    - mask_percentage: 60
+    - mask_percentage: 70
+    - mask_percentage: 80
+    - mask_percentage: 90
+    - mask_percentage: 100
+
+- class: BandRandomMasking
+  param_range:
+    - mask_percentage: 50
+    - mask_percentage: 60
+    - mask_percentage: 70
+    - mask_percentage: 80
+    - mask_percentage: 90
+    - mask_percentage: 100

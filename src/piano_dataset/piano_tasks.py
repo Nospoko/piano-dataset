@@ -1,6 +1,7 @@
 import importlib.resources as pkg_resources
 
 import yaml
+import numpy as np
 import pandas as pd
 
 from piano_dataset.piano_task import PianoTask, PromptTaskType, TargetPromptSplit
@@ -402,6 +403,127 @@ class RandomMasking(PianoTask):
 
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
         target_df = notes_df.sample(frac=self.masking_fraction)
+        source_df = notes_df.drop(target_df.index)
+
+        source_df = source_df.reset_index(drop=True)
+        target_df = target_df.sort_values("start", ignore_index=True)
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
+class LinearRandomMasking(PianoTask):
+    name = "linear_random_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<LINEAR_RANDOM_MASK>"
+
+    def __init__(self, mask_percentage: int = 50):
+        self.mask_percentage = mask_percentage
+
+    @property
+    def task_name(self) -> str:
+        name = f"{self.name}-x{self.mask_percentage}"
+        return name
+
+    @property
+    def masking_fraction(self) -> float:
+        return self.mask_percentage / 100
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        time_min = notes_df.start.min()
+        time_max = notes_df.start.max()
+
+        pitch_start = notes_df[:10].sample().iloc[0].pitch
+        pitch_finish = notes_df[-10:].sample().iloc[0].pitch
+
+        dx = time_max - time_min
+        dy = pitch_finish - pitch_start
+
+        num = np.abs(
+            dy * notes_df["start"] - dx * notes_df["pitch"] + time_max * pitch_start - pitch_finish * time_min,
+        )
+        den = np.sqrt(dx**2 + dy**2)
+        distances = num / den
+
+        # TODO We should have more control over this!
+        r = 2 + np.random.randint(10)
+        ids = distances <= r
+
+        target_df = notes_df[ids].sample(frac=self.masking_fraction)
+        source_df = notes_df.drop(target_df.index)
+
+        source_df = source_df.reset_index(drop=True)
+        target_df = target_df.sort_values("start", ignore_index=True)
+
+        target_split = TargetPromptSplit(
+            source_df=source_df,
+            target_df=target_df,
+            prefix_tokens=self.prefix_tokens,
+        )
+        return target_split
+
+
+class BandRandomMasking(PianoTask):
+    name = "band_random_masking"
+    type = PromptTaskType.COMBINE
+    task_token = "<BAND_RANDOM_MASK>"
+
+    def __init__(self, mask_percentage: int = 50):
+        self.mask_percentage = mask_percentage
+
+    @property
+    def task_name(self) -> str:
+        name = f"{self.name}-x{self.mask_percentage}"
+        return name
+
+    @property
+    def masking_fraction(self) -> float:
+        return self.mask_percentage / 100
+
+    @property
+    def prefix_tokens(self) -> list[str]:
+        prefix_tokens = [
+            self.task_token,
+        ]
+        return prefix_tokens
+
+    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+        time_min = notes_df.start.min()
+        time_max = notes_df.start.max()
+
+        pitch_start = notes_df[:10].sample().iloc[0].pitch
+        pitch_finish = notes_df[-10:].sample().iloc[0].pitch
+
+        # TODO We should have more control over this!
+        r0 = 1 + np.random.randint(10)
+        r1 = 1 + np.random.randint(10)
+
+        # Slopes of the bounding lines
+        m_upper = (pitch_finish + r1 - (pitch_start + r0)) / (time_max - time_min)
+        m_lower = (pitch_finish - r1 - (pitch_start - r0)) / (time_max - time_min)
+
+        # Intercepts
+        b_upper = (pitch_start + r0) - m_upper * time_min
+        b_lower = (pitch_start - r0) - m_lower * time_min
+
+        # For each point, check if pitch lies between the two lines at that time
+        y_upper = m_upper * notes_df["start"] + b_upper
+        y_lower = m_lower * notes_df["start"] + b_lower
+
+        mask = (notes_df["pitch"] <= y_upper) & (notes_df["pitch"] >= y_lower)
+
+        target_df = notes_df[mask].sample(frac=self.masking_fraction)
         source_df = notes_df.drop(target_df.index)
 
         source_df = source_df.reset_index(drop=True)
