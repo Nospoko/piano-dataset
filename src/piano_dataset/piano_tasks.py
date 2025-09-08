@@ -456,7 +456,8 @@ class LinearRandomMasking(PianoTask):
         den = np.sqrt(dx**2 + dy**2)
         distances = num / den
 
-        r = 2 + np.random.randint(7)
+        # TODO We should have more control over this!
+        r = 2 + np.random.randint(10)
         ids = distances <= r
 
         target_df = notes_df[ids].sample(frac=self.masking_fraction)
@@ -504,6 +505,7 @@ class BandRandomMasking(PianoTask):
         pitch_start = notes_df[:10].sample().iloc[0].pitch
         pitch_finish = notes_df[-10:].sample().iloc[0].pitch
 
+        # TODO We should have more control over this!
         r0 = 1 + np.random.randint(10)
         r1 = 1 + np.random.randint(10)
 
