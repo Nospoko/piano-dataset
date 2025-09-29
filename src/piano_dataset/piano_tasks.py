@@ -499,8 +499,10 @@ class BandRandomMasking(PianoTask):
         return prefix_tokens
 
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        time_min = notes_df.start.min()
-        time_max = notes_df.start.max()
+        # Add small offset to prevent blowing up when all notes
+        # are in the same timestamp
+        time_min = notes_df.start.min() - 0.1
+        time_max = notes_df.start.max() + 0.1
 
         pitch_start = notes_df[:10].sample().iloc[0].pitch
         pitch_finish = notes_df[-10:].sample().iloc[0].pitch
