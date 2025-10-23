@@ -46,18 +46,6 @@
     - n_notes: 15
     - n_notes: 20
 
-- class: StrideMasking
-  param_range:
-    - stride: 1
-    - stride: 2
-    - stride: 3
-    - stride: 5
-    - stride: 6
-    - stride: 8
-    - stride: 10
-    - stride: 15
-    - stride: 20
-
 - class: RandomMasking
   param_range:
     - mask_percentage: 5
