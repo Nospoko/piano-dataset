@@ -37,6 +37,12 @@ class TargetPromptSplit(NamedTuple):
         yield "target_notes", self.n_target_notes
         yield "prefix_tokens", self.prefix_tokens
 
+    @property
+    def notes_df(self) -> pd.DataFrame:
+        notes_df = pd.concat([self.source_df, self.target_df])
+        notes_df = notes_df.sort_values("start", ignore_index=True)
+        return notes_df
+
 
 class PianoTask(ABC):
     name: str

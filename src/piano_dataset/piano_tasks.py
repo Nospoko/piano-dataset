@@ -60,7 +60,7 @@ class TopLineMasking(PianoTask):
 
             source_df = source_df[~ids]
 
-        target_df = pd.concat(target_notes, axis=0)
+        target_df = pd.concat(target_notes, axis=0).sort_values("start", ignore_index=True)
 
         target_split = TargetPromptSplit(
             source_df=source_df,
@@ -123,7 +123,7 @@ class BottomLineMasking(PianoTask):
 
             source_df = source_df[~ids]
 
-        target_df = pd.concat(target_notes, axis=0)
+        target_df = pd.concat(target_notes, axis=0).sort_values("start", ignore_index=True)
 
         target_split = TargetPromptSplit(
             source_df=source_df,
