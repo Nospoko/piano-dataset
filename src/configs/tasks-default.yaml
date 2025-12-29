@@ -17,34 +17,206 @@
 - class: LowNotesMasking
   param_range:
     - n_notes: 3
+    - n_notes: 4
     - n_notes: 5
+    - n_notes: 6
+    - n_notes: 7
+    - n_notes: 8
+    - n_notes: 9
     - n_notes: 10
+    - n_notes: 11
+    - n_notes: 12
+    - n_notes: 13
+    - n_notes: 14
     - n_notes: 15
+    - n_notes: 16
+    - n_notes: 17
+    - n_notes: 18
+    - n_notes: 19
     - n_notes: 20
+    - n_notes: 21
+    - n_notes: 22
+    - n_notes: 23
+    - n_notes: 24
+    - n_notes: 25
+    - n_notes: 26
+    - n_notes: 27
+    - n_notes: 28
+    - n_notes: 29
+    - n_notes: 30
+    - n_notes: 31
+    - n_notes: 32
+    - n_notes: 33
+    - n_notes: 34
+    - n_notes: 35
+    - n_notes: 36
+    - n_notes: 37
+    - n_notes: 38
+    - n_notes: 39
+    - n_notes: 40
+    - n_notes: 41
+    - n_notes: 42
+    - n_notes: 43
+    - n_notes: 44
+    - n_notes: 45
+    - n_notes: 46
+    - n_notes: 47
+    - n_notes: 48
+    - n_notes: 49
+    - n_notes: 50
 
 - class: HighNotesMasking
   param_range:
     - n_notes: 3
+    - n_notes: 4
     - n_notes: 5
+    - n_notes: 6
+    - n_notes: 7
+    - n_notes: 8
+    - n_notes: 9
     - n_notes: 10
+    - n_notes: 11
+    - n_notes: 12
+    - n_notes: 13
+    - n_notes: 14
     - n_notes: 15
+    - n_notes: 16
+    - n_notes: 17
+    - n_notes: 18
+    - n_notes: 19
     - n_notes: 20
+    - n_notes: 21
+    - n_notes: 22
+    - n_notes: 23
+    - n_notes: 24
+    - n_notes: 25
+    - n_notes: 26
+    - n_notes: 27
+    - n_notes: 28
+    - n_notes: 29
+    - n_notes: 30
+    - n_notes: 31
+    - n_notes: 32
+    - n_notes: 33
+    - n_notes: 34
+    - n_notes: 35
+    - n_notes: 36
+    - n_notes: 37
+    - n_notes: 38
+    - n_notes: 39
+    - n_notes: 40
+    - n_notes: 41
+    - n_notes: 42
+    - n_notes: 43
+    - n_notes: 44
+    - n_notes: 45
+    - n_notes: 46
+    - n_notes: 47
+    - n_notes: 48
+    - n_notes: 49
+    - n_notes: 50
 
 - class: ShortNotesMasking
   param_range:
     - n_notes: 3
+    - n_notes: 4
     - n_notes: 5
+    - n_notes: 6
+    - n_notes: 7
+    - n_notes: 8
+    - n_notes: 9
     - n_notes: 10
+    - n_notes: 11
+    - n_notes: 12
+    - n_notes: 13
+    - n_notes: 14
     - n_notes: 15
+    - n_notes: 16
+    - n_notes: 17
+    - n_notes: 18
+    - n_notes: 19
     - n_notes: 20
+    - n_notes: 21
+    - n_notes: 22
+    - n_notes: 23
+    - n_notes: 24
+    - n_notes: 25
+    - n_notes: 26
+    - n_notes: 27
+    - n_notes: 28
+    - n_notes: 29
+    - n_notes: 30
+    - n_notes: 31
+    - n_notes: 32
+    - n_notes: 33
+    - n_notes: 34
+    - n_notes: 35
+    - n_notes: 36
+    - n_notes: 37
+    - n_notes: 38
+    - n_notes: 39
+    - n_notes: 40
+    - n_notes: 41
+    - n_notes: 42
+    - n_notes: 43
+    - n_notes: 44
+    - n_notes: 45
+    - n_notes: 46
+    - n_notes: 47
+    - n_notes: 48
+    - n_notes: 49
+    - n_notes: 50
 
 - class: LongNotesMasking
   param_range:
     - n_notes: 3
+    - n_notes: 4
     - n_notes: 5
+    - n_notes: 6
+    - n_notes: 7
+    - n_notes: 8
+    - n_notes: 9
     - n_notes: 10
+    - n_notes: 11
+    - n_notes: 12
+    - n_notes: 13
+    - n_notes: 14
     - n_notes: 15
+    - n_notes: 16
+    - n_notes: 17
+    - n_notes: 18
+    - n_notes: 19
     - n_notes: 20
+    - n_notes: 21
+    - n_notes: 22
+    - n_notes: 23
+    - n_notes: 24
+    - n_notes: 25
+    - n_notes: 26
+    - n_notes: 27
+    - n_notes: 28
+    - n_notes: 29
+    - n_notes: 30
+    - n_notes: 31
+    - n_notes: 32
+    - n_notes: 33
+    - n_notes: 34
+    - n_notes: 35
+    - n_notes: 36
+    - n_notes: 37
+    - n_notes: 38
+    - n_notes: 39
+    - n_notes: 40
+    - n_notes: 41
+    - n_notes: 42
+    - n_notes: 43
+    - n_notes: 44
+    - n_notes: 45
+    - n_notes: 46
+    - n_notes: 47
+    - n_notes: 48
+    - n_notes: 49
+    - n_notes: 50
 
 - class: RandomMasking
   param_range:
