@@ -222,27 +222,201 @@
     - mask_percentage: 20
     - mask_percentage: 30
     - mask_percentage: 40
+    - mask_percentage: 41
+    - mask_percentage: 42
+    - mask_percentage: 43
+    - mask_percentage: 44
+    - mask_percentage: 45
+    - mask_percentage: 46
+    - mask_percentage: 47
+    - mask_percentage: 48
+    - mask_percentage: 49
     - mask_percentage: 50
+    - mask_percentage: 51
+    - mask_percentage: 52
+    - mask_percentage: 53
+    - mask_percentage: 54
+    - mask_percentage: 55
+    - mask_percentage: 56
+    - mask_percentage: 57
+    - mask_percentage: 58
+    - mask_percentage: 59
     - mask_percentage: 60
+    - mask_percentage: 61
+    - mask_percentage: 62
+    - mask_percentage: 63
+    - mask_percentage: 64
+    - mask_percentage: 65
+    - mask_percentage: 66
+    - mask_percentage: 67
+    - mask_percentage: 68
+    - mask_percentage: 69
     - mask_percentage: 70
+    - mask_percentage: 71
+    - mask_percentage: 72
+    - mask_percentage: 73
+    - mask_percentage: 74
+    - mask_percentage: 75
+    - mask_percentage: 76
+    - mask_percentage: 77
+    - mask_percentage: 78
+    - mask_percentage: 79
     - mask_percentage: 80
+    - mask_percentage: 81
+    - mask_percentage: 82
+    - mask_percentage: 83
+    - mask_percentage: 84
+    - mask_percentage: 85
+    - mask_percentage: 86
+    - mask_percentage: 87
+    - mask_percentage: 88
+    - mask_percentage: 89
     - mask_percentage: 90
-    - mask_percentage: 95
+    - mask_percentage: 81
+    - mask_percentage: 82
+    - mask_percentage: 83
+    - mask_percentage: 84
+    - mask_percentage: 85
+    - mask_percentage: 86
+    - mask_percentage: 87
+    - mask_percentage: 88
+    - mask_percentage: 89
+    - mask_percentage: 100
 
 - class: LinearRandomMasking
   param_range:
+    - mask_percentage: 5
+    - mask_percentage: 10
+    - mask_percentage: 15
+    - mask_percentage: 20
+    - mask_percentage: 30
+    - mask_percentage: 40
+    - mask_percentage: 41
+    - mask_percentage: 42
+    - mask_percentage: 43
+    - mask_percentage: 44
+    - mask_percentage: 45
+    - mask_percentage: 46
+    - mask_percentage: 47
+    - mask_percentage: 48
+    - mask_percentage: 49
     - mask_percentage: 50
+    - mask_percentage: 51
+    - mask_percentage: 52
+    - mask_percentage: 53
+    - mask_percentage: 54
+    - mask_percentage: 55
+    - mask_percentage: 56
+    - mask_percentage: 57
+    - mask_percentage: 58
+    - mask_percentage: 59
     - mask_percentage: 60
+    - mask_percentage: 61
+    - mask_percentage: 62
+    - mask_percentage: 63
+    - mask_percentage: 64
+    - mask_percentage: 65
+    - mask_percentage: 66
+    - mask_percentage: 67
+    - mask_percentage: 68
+    - mask_percentage: 69
     - mask_percentage: 70
+    - mask_percentage: 71
+    - mask_percentage: 72
+    - mask_percentage: 73
+    - mask_percentage: 74
+    - mask_percentage: 75
+    - mask_percentage: 76
+    - mask_percentage: 77
+    - mask_percentage: 78
+    - mask_percentage: 79
     - mask_percentage: 80
+    - mask_percentage: 81
+    - mask_percentage: 82
+    - mask_percentage: 83
+    - mask_percentage: 84
+    - mask_percentage: 85
+    - mask_percentage: 86
+    - mask_percentage: 87
+    - mask_percentage: 88
+    - mask_percentage: 89
     - mask_percentage: 90
+    - mask_percentage: 81
+    - mask_percentage: 82
+    - mask_percentage: 83
+    - mask_percentage: 84
+    - mask_percentage: 85
+    - mask_percentage: 86
+    - mask_percentage: 87
+    - mask_percentage: 88
+    - mask_percentage: 89
     - mask_percentage: 100
 
 - class: BandRandomMasking
   param_range:
+    - mask_percentage: 5
+    - mask_percentage: 10
+    - mask_percentage: 15
+    - mask_percentage: 20
+    - mask_percentage: 30
+    - mask_percentage: 40
+    - mask_percentage: 41
+    - mask_percentage: 42
+    - mask_percentage: 43
+    - mask_percentage: 44
+    - mask_percentage: 45
+    - mask_percentage: 46
+    - mask_percentage: 47
+    - mask_percentage: 48
+    - mask_percentage: 49
     - mask_percentage: 50
+    - mask_percentage: 51
+    - mask_percentage: 52
+    - mask_percentage: 53
+    - mask_percentage: 54
+    - mask_percentage: 55
+    - mask_percentage: 56
+    - mask_percentage: 57
+    - mask_percentage: 58
+    - mask_percentage: 59
     - mask_percentage: 60
+    - mask_percentage: 61
+    - mask_percentage: 62
+    - mask_percentage: 63
+    - mask_percentage: 64
+    - mask_percentage: 65
+    - mask_percentage: 66
+    - mask_percentage: 67
+    - mask_percentage: 68
+    - mask_percentage: 69
     - mask_percentage: 70
+    - mask_percentage: 71
+    - mask_percentage: 72
+    - mask_percentage: 73
+    - mask_percentage: 74
+    - mask_percentage: 75
+    - mask_percentage: 76
+    - mask_percentage: 77
+    - mask_percentage: 78
+    - mask_percentage: 79
     - mask_percentage: 80
+    - mask_percentage: 81
+    - mask_percentage: 82
+    - mask_percentage: 83
+    - mask_percentage: 84
+    - mask_percentage: 85
+    - mask_percentage: 86
+    - mask_percentage: 87
+    - mask_percentage: 88
+    - mask_percentage: 89
     - mask_percentage: 90
+    - mask_percentage: 81
+    - mask_percentage: 82
+    - mask_percentage: 83
+    - mask_percentage: 84
+    - mask_percentage: 85
+    - mask_percentage: 86
+    - mask_percentage: 87
+    - mask_percentage: 88
+    - mask_percentage: 89
     - mask_percentage: 100
