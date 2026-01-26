@@ -138,25 +138,28 @@ class HighNotesMasking(PianoTask):
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_HIGH_NOTES>"
 
-    def __init__(self, n_notes: int = 5):
-        self.n_notes = n_notes
+    def __init__(self, mask_percentage: int = 50):
+        self.mask_percentage = mask_percentage
 
     @property
     def task_name(self) -> str:
-        # *x* reads *times*
-        name = f"{self.name}-x{self.n_notes}"
+        # *x* reads *percent*
+        name = f"{self.name}-x{self.mask_percentage}"
         return name
 
     @property
     def prefix_tokens(self) -> list[str]:
         prefix_tokens = [
             self.task_token,
-            self.task_parameter_token(self.n_notes),
+            self.task_parameter_token(self.mask_percentage),
         ]
         return prefix_tokens
 
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        target_df = notes_df.nlargest(self.n_notes, "pitch")
+        n_notes = self.mask_percentage * notes_df.shape[0] / 100
+        n_notes = np.ceil(n_notes).astype(int)
+
+        target_df = notes_df.nlargest(n_notes, "pitch")
 
         ids = notes_df.index.isin(target_df.index)
         source_df = notes_df[~ids].reset_index(drop=True)
@@ -176,25 +179,28 @@ class LowNotesMasking(PianoTask):
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_LOW_NOTES>"
 
-    def __init__(self, n_notes: int = 5):
-        self.n_notes = n_notes
+    def __init__(self, mask_percentage: int = 50):
+        self.mask_percentage = mask_percentage
 
     @property
     def task_name(self) -> str:
-        # *x* reads *times*
-        name = f"{self.name}-x{self.n_notes}"
+        # *x* reads *percent*
+        name = f"{self.name}-x{self.mask_percentage}"
         return name
 
     @property
     def prefix_tokens(self) -> list[str]:
         prefix_tokens = [
             self.task_token,
-            self.task_parameter_token(self.n_notes),
+            self.task_parameter_token(self.mask_percentage),
         ]
         return prefix_tokens
 
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        target_df = notes_df.nsmallest(self.n_notes, "pitch")
+        n_notes = self.mask_percentage * notes_df.shape[0] / 100
+        n_notes = np.ceil(n_notes).astype(int)
+
+        target_df = notes_df.nsmallest(n_notes, "pitch")
 
         ids = notes_df.index.isin(target_df.index)
         source_df = notes_df[~ids].reset_index(drop=True)
@@ -216,25 +222,28 @@ class ShortNotesMasking(PianoTask):
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_SHORT_NOTES>"
 
-    def __init__(self, n_notes: int = 5):
-        self.n_notes = n_notes
+    def __init__(self, mask_percentage: int = 50):
+        self.mask_percentage = mask_percentage
 
     @property
     def task_name(self) -> str:
-        # *x* reads *times*
-        name = f"{self.name}-x{self.n_notes}"
+        # *x* reads *percent*
+        name = f"{self.name}-x{self.mask_percentage}"
         return name
 
     @property
     def prefix_tokens(self) -> list[str]:
         prefix_tokens = [
             self.task_token,
-            self.task_parameter_token(self.n_notes),
+            self.task_parameter_token(self.mask_percentage),
         ]
         return prefix_tokens
 
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        target_df = notes_df.nsmallest(self.n_notes, "duration")
+        n_notes = self.mask_percentage * notes_df.shape[0] / 100
+        n_notes = np.ceil(n_notes).astype(int)
+
+        target_df = notes_df.nsmallest(n_notes, "duration")
 
         ids = notes_df.index.isin(target_df.index)
         source_df = notes_df[~ids].reset_index(drop=True)
@@ -254,25 +263,28 @@ class LongNotesMasking(PianoTask):
     type = PromptTaskType.COMBINE
     task_token = "<PARAMETRIC_LONG_NOTES>"
 
-    def __init__(self, n_notes: int = 5):
-        self.n_notes = n_notes
+    def __init__(self, mask_percentage: int = 50):
+        self.mask_percentage = mask_percentage
 
     @property
     def task_name(self) -> str:
-        # *x* reads *times*
-        name = f"{self.name}-x{self.n_notes}"
+        # *x* reads *percent*
+        name = f"{self.name}-x{self.mask_percentage}"
         return name
 
     @property
     def prefix_tokens(self) -> list[str]:
         prefix_tokens = [
             self.task_token,
-            self.task_parameter_token(self.n_notes),
+            self.task_parameter_token(self.mask_percentage),
         ]
         return prefix_tokens
 
     def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        target_df = notes_df.nlargest(self.n_notes, "duration")
+        n_notes = self.mask_percentage * notes_df.shape[0] / 100
+        n_notes = np.ceil(n_notes).astype(int)
+
+        target_df = notes_df.nlargest(n_notes, "duration")
 
         ids = notes_df.index.isin(target_df.index)
         source_df = notes_df[~ids].reset_index(drop=True)
