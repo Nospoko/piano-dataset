@@ -47,7 +47,11 @@ class TopLineMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         source_df = notes_df.copy()
         target_notes = []
         for it in range(self.n_repetitions):
@@ -110,7 +114,11 @@ class BottomLineMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         source_df = notes_df.copy()
         target_notes = []
         for it in range(self.n_repetitions):
@@ -155,7 +163,11 @@ class HighNotesMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         n_notes = self.mask_percentage * notes_df.shape[0] / 100
         n_notes = np.ceil(n_notes).astype(int)
 
@@ -196,7 +208,11 @@ class LowNotesMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         n_notes = self.mask_percentage * notes_df.shape[0] / 100
         n_notes = np.ceil(n_notes).astype(int)
 
@@ -239,7 +255,11 @@ class ShortNotesMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         n_notes = self.mask_percentage * notes_df.shape[0] / 100
         n_notes = np.ceil(n_notes).astype(int)
 
@@ -280,7 +300,11 @@ class LongNotesMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         n_notes = self.mask_percentage * notes_df.shape[0] / 100
         n_notes = np.ceil(n_notes).astype(int)
 
@@ -321,7 +345,11 @@ class StrideMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         # It's an arbitrary choice, but for now let the target
         # always start from the second note
         # My version of stride: retain N rows, skip N rows
@@ -360,7 +388,11 @@ class ChordMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         mask = notes_df.start.diff() < 0.015
 
         # Identify start of new groups
@@ -413,8 +445,15 @@ class RandomMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
-        target_df = notes_df.sample(frac=self.masking_fraction)
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
+        target_df = notes_df.sample(
+            frac=self.masking_fraction,
+            random_state=rng,
+        )
         source_df = notes_df.drop(target_df.index)
 
         source_df = source_df.reset_index(drop=True)
@@ -452,12 +491,16 @@ class LinearRandomMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         time_min = notes_df.start.min()
         time_max = notes_df.start.max()
 
-        pitch_start = notes_df[:10].sample().iloc[0].pitch
-        pitch_finish = notes_df[-10:].sample().iloc[0].pitch
+        pitch_start = notes_df[:10].sample(random_state=rng).iloc[0].pitch
+        pitch_finish = notes_df[-10:].sample(random_state=rng).iloc[0].pitch
 
         dx = time_max - time_min
         dy = pitch_finish - pitch_start
@@ -469,10 +512,13 @@ class LinearRandomMasking(PianoTask):
         distances = num / den
 
         # TODO We should have more control over this!
-        r = 2 + np.random.randint(10)
+        r = 2 + rng.integers(0, 10)
         ids = distances <= r
 
-        target_df = notes_df[ids].sample(frac=self.masking_fraction)
+        target_df = notes_df[ids].sample(
+            random_state=rng,
+            frac=self.masking_fraction,
+        )
         source_df = notes_df.drop(target_df.index)
 
         source_df = source_df.reset_index(drop=True)
@@ -510,18 +556,22 @@ class BandRandomMasking(PianoTask):
         ]
         return prefix_tokens
 
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         # Add small offset to prevent blowing up when all notes
         # are in the same timestamp
         time_min = notes_df.start.min() - 0.1
         time_max = notes_df.start.max() + 0.1
 
-        pitch_start = notes_df[:10].sample().iloc[0].pitch
-        pitch_finish = notes_df[-10:].sample().iloc[0].pitch
+        pitch_start = notes_df[:10].sample(random_state=rng).iloc[0].pitch
+        pitch_finish = notes_df[-10:].sample(random_state=rng).iloc[0].pitch
 
         # TODO We should have more control over this!
-        r0 = 1 + np.random.randint(10)
-        r1 = 1 + np.random.randint(10)
+        r0 = 1 + rng.integers(0, 10)
+        r1 = 1 + rng.integers(0, 10)
 
         # Slopes of the bounding lines
         m_upper = (pitch_finish + r1 - (pitch_start + r0)) / (time_max - time_min)
@@ -537,7 +587,10 @@ class BandRandomMasking(PianoTask):
 
         mask = (notes_df["pitch"] <= y_upper) & (notes_df["pitch"] >= y_lower)
 
-        target_df = notes_df[mask].sample(frac=self.masking_fraction)
+        target_df = notes_df[mask].sample(
+            random_state=rng,
+            frac=self.masking_fraction,
+        )
         source_df = notes_df.drop(target_df.index)
 
         source_df = source_df.reset_index(drop=True)

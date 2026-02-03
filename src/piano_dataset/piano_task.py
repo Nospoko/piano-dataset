@@ -2,6 +2,7 @@ from enum import Enum
 from abc import ABC, abstractmethod
 from typing import Union, NamedTuple
 
+import numpy as np
 import pandas as pd
 
 
@@ -50,7 +51,11 @@ class PianoTask(ABC):
     type: PromptTaskType
 
     @abstractmethod
-    def prompt_target_split(self, notes_df: pd.DataFrame) -> TargetPromptSplit:
+    def prompt_target_split(
+        self,
+        notes_df: pd.DataFrame,
+        rng: np.random.Generator,
+    ) -> TargetPromptSplit:
         pass
 
     @property
